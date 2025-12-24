@@ -1,8 +1,8 @@
-Got it. Here’s the tech stack organized with that clearly stated: you will **use Supabase as the service provider**, but **you will implement authentication, email flows, and database interactions yourself** (not using Supabase’s ready-made auth UI or default implementation).
+
 
 ## Proposed Tech Stack
 
-### 1) Frontend
+### 1. Frontend
 
 * **Framework:** Next.js (React)
 * **UI Components:** shadcn/ui
@@ -15,20 +15,17 @@ Got it. Here’s the tech stack organized with that clearly stated: you will **u
 
 ---
 
-### 2) Backend
+### 2. Backend
 
 * **Framework:** Django REST Framework (DRF)
 * **Authentication:** JWT (access + refresh tokens)
 * **Authorization:** RBAC permissions for Admin, Developer, Investor enforced at API level
 * **Email Handling:** Supabase email service (SMTP/email delivery) triggered by backend
-* **Async Jobs (Optional but recommended):**
 
-  * MVP: synchronous email sending is acceptable
-  * Upgrade path: Celery + Redis for background emails and notification processing
 
 ---
 
-### 3) Database and Storage
+### 3. Database and Storage
 
 * **Database:** PostgreSQL (Supabase-hosted)
 
@@ -41,7 +38,7 @@ Got it. Here’s the tech stack organized with that clearly stated: you will **u
 
 ---
 
-### 4) Supabase Usage Policy (Important Clarification)
+### 4. Supabase Usage Policy (Important Clarification)
 
 You will use Supabase as a **managed service provider** only:
 
@@ -57,7 +54,7 @@ Instead:
 
 ---
 
-### 5) Real-Time Notifications
+### 5. Real-Time Notifications
 
 * **MVP approach:** Polling (frontend requests notifications periodically)
 * **Upgrade approach:** Django Channels (WebSockets) for real-time alerts
@@ -66,7 +63,7 @@ Recommendation: implement **polling first**, then add WebSockets if time permits
 
 ---
 
-### 6) Security and Quality
+### 6. Security and Quality
 
 * API-level RBAC enforcement across all endpoints
 * Secure password hashing and input validation in Django
@@ -75,6 +72,25 @@ Recommendation: implement **polling first**, then add WebSockets if time permits
 * Atomic database transactions to prevent overselling shares
 * Audit logs stored in DB for critical actions
 
+API Security:
+
+HTTPS only
+
+JWT token verification and refresh strategy
+
+DRF permissions for RBAC
+
+Input validation at backend and frontend
+
+Rate limiting on login and access request endpoints (DRF throttling)
+
+Payment (Sandbox):
+
+Payment gateway integration in backend
+
+Idempotent callback handling to prevent duplicate investments
+
+Transaction-safe updates to prevent overselling shares
 ---
 
 ### Short “Tech Stack Summary” (copy-paste)

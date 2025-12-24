@@ -1,9 +1,3 @@
-I updated your SRS to match what’s inside the PDF you shared by adding the missing interface details (dashboard-based UI, comparator table, 3D controls, software interfaces), explicitly listing project states, adding the share-price and investment formulas, tightening payment rules (idempotency and no share impact on failed payments), adding “logs must be immutable and reviewable,” and aligning performance and reliability points like near real-time dashboard updates and atomic share allocation.    
-
-Below is the updated SRS in the same order and format you are using.
-
----
-
 # Software Requirements Specification (SRS)
 
 ## Crowdfunding Trading Platform (Full Scope MVP)
