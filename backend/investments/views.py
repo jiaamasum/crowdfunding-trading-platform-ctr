@@ -434,7 +434,7 @@ class InvestmentReviewView(APIView):
                     'price_per_share': str(investment.price_per_share),
                     'amount': str(investment.total_amount),
                     'admin_note': admin_note,
-                    'expires_at': investment.approval_expires_at,
+                    'expires_at': str(investment.approval_expires_at) if investment.approval_expires_at else None,
                 },
             )
         except Exception:
@@ -454,7 +454,7 @@ class InvestmentReviewView(APIView):
                     'price_per_share': str(investment.price_per_share),
                     'amount': str(investment.total_amount),
                     'admin_note': admin_note,
-                    'expires_at': investment.approval_expires_at,
+                    'expires_at': str(investment.approval_expires_at) if investment.approval_expires_at else None,
                 },
             )
         except Exception:
