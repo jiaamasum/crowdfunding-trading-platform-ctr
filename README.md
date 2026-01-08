@@ -108,7 +108,7 @@ Click the image to watch the walkthrough.
 ## Architecture
 ```mermaid
 flowchart LR
-  UI[React Client (Vite)] --> API[Django REST API]
+  UI["React Client (Vite)"] --> API[Django REST API]
   API --> DB[(PostgreSQL)]
   API --> Storage[(Supabase Storage)]
   API --> Auth[JWT]
