@@ -12,31 +12,50 @@ class InvestmentSerializer(serializers.ModelSerializer):
     investor_email = serializers.CharField(source='investor.email', read_only=True)
     project_title = serializers.CharField(source='project.title', read_only=True)
     reviewed_by_name = serializers.CharField(source='reviewed_by.name', read_only=True)
+    is_active = serializers.SerializerMethodField()
+    activity_status = serializers.SerializerMethodField()
     
     class Meta:
         model = Investment
         fields = [
             'id', 'investor', 'investor_name', 'investor_email',
             'project', 'project_title', 'shares', 'price_per_share',
-            'total_amount', 'status', 'request_note', 'admin_note',
+            'total_amount', 'status', 'is_active', 'activity_status',
+            'request_note', 'admin_note',
             'reviewed_at', 'reviewed_by', 'reviewed_by_name',
             'approval_expires_at', 'created_at', 'completed_at'
         ]
         read_only_fields = [
             'id', 'investor', 'price_per_share', 'total_amount', 'status',
+            'is_active', 'activity_status',
             'reviewed_at', 'reviewed_by', 'approval_expires_at',
             'created_at', 'completed_at'
         ]
 
+    def get_is_active(self, obj):
+        return obj.status == Investment.Status.COMPLETED
+
+    def get_activity_status(self, obj):
+        return 'ACTIVE' if obj.status == Investment.Status.COMPLETED else 'INACTIVE'
+
 
 class InvestmentCreateSerializer(serializers.ModelSerializer):
+    is_active = serializers.SerializerMethodField()
+    activity_status = serializers.SerializerMethodField()
     class Meta:
         model = Investment
         fields = [
             'id', 'project', 'shares', 'request_note',
-            'price_per_share', 'total_amount', 'status', 'created_at'
+            'price_per_share', 'total_amount', 'status',
+            'is_active', 'activity_status', 'created_at'
         ]
-        read_only_fields = ['id', 'price_per_share', 'total_amount', 'status', 'created_at']
+        read_only_fields = ['id', 'price_per_share', 'total_amount', 'status', 'created_at', 'is_active', 'activity_status']
+
+    def get_is_active(self, obj):
+        return obj.status == Investment.Status.COMPLETED
+
+    def get_activity_status(self, obj):
+        return 'ACTIVE' if obj.status == Investment.Status.COMPLETED else 'INACTIVE'
     
     def validate(self, attrs):
         project = attrs['project']

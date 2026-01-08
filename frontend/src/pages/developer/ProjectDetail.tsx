@@ -72,6 +72,16 @@ export default function DeveloperProjectDetail() {
   const canEdit = ['DRAFT', 'NEEDS_CHANGES', 'REJECTED', 'APPROVED'].includes(project.status);
   const canSubmit = ['DRAFT', 'NEEDS_CHANGES'].includes(project.status);
   const isApproved = project.status === 'APPROVED';
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+  const activeInvestments = investments.filter((inv) => inv.isActive ?? inv.status === 'COMPLETED');
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
+  const totalInvestedAmount = investedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeInvestedAmount = activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const withdrawnInvestedAmount = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalInvestedShares = investedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeInvestedShares = activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
 
   const stats = [
     { label: 'Total Value', value: project.totalValue, icon: DollarSign, isMoney: true },
@@ -287,41 +297,69 @@ export default function DeveloperProjectDetail() {
         </TabsContent>
 
         <TabsContent value="investors" className="mt-6">
-          <Card>
-            {investments.length === 0 ? (
-              <CardContent className="py-12 text-center text-muted-foreground">
-                No investments yet
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="grid gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-5">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Invested</p>
+                  <Money amount={totalInvestedAmount} className="text-xl font-bold" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Invested</p>
+                  <Money amount={activeInvestedAmount} className="text-xl font-bold" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Withdrawn/Refunded</p>
+                  <Money amount={withdrawnInvestedAmount} className="text-xl font-bold" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Shares</p>
+                  <p className="text-xl font-bold">{totalInvestedShares.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Shares</p>
+                  <p className="text-xl font-bold">{activeInvestedShares.toLocaleString()}</p>
+                </div>
               </CardContent>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Investor</TableHead>
-                    <TableHead>Shares</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {investments.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{inv.investorName}</p>
-                          <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                      <TableCell><Money amount={inv.totalAmount} /></TableCell>
-                      <TableCell className="text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell><StatusBadge status={inv.status} /></TableCell>
+            </Card>
+            <Card>
+              {investments.length === 0 ? (
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No investments yet
+                </CardContent>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Investor</TableHead>
+                      <TableHead>Shares</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Active</TableHead>
+                      <TableHead>Date</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {investments.map((inv) => (
+                      <TableRow key={inv.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{inv.investorName}</p>
+                            <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                        <TableCell><Money amount={inv.totalAmount} /></TableCell>
+                        <TableCell><StatusBadge status={inv.status} /></TableCell>
+                        <TableCell><StatusBadge status={inv.activityStatus || ((inv.isActive ?? inv.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
+                        <TableCell className="text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="media" className="mt-6">

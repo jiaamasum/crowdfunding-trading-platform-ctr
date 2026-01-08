@@ -23,6 +23,7 @@ export default function InvestmentProjectDetail() {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activityFilter, setActivityFilter] = useState('all');
   const [approvalOpen, setApprovalOpen] = useState(false);
   const [approvalTarget, setApprovalTarget] = useState<Investment | null>(null);
   const [expiresInDays, setExpiresInDays] = useState(7);
@@ -61,17 +62,29 @@ export default function InvestmentProjectDetail() {
     loadData();
   }, [id]);
 
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const activeInvestments = investments.filter((inv) => inv.isActive ?? inv.status === 'COMPLETED');
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+
   const filteredInvestments = useMemo(() => {
     return investments.filter((inv) => {
       const matchesSearch = inv.investorName.toLowerCase().includes(search.toLowerCase())
         || inv.investorEmail.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const isActive = inv.isActive ?? inv.status === 'COMPLETED';
+      const matchesActivity = activityFilter === 'all'
+        || (activityFilter === 'active' ? isActive : !isActive);
+      return matchesSearch && matchesStatus && matchesActivity;
     });
-  }, [investments, search, statusFilter]);
+  }, [investments, search, statusFilter, activityFilter]);
 
-  const totalAmount = investments.reduce((sum, inv) => sum + inv.totalAmount, 0);
-  const totalShares = investments.reduce((sum, inv) => sum + inv.shares, 0);
+  const totalAmount = investedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalShares = investedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeAmount = activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeShares = activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const withdrawnAmount = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   const handleApprove = (investment: Investment) => {
     setApprovalTarget(investment);
@@ -183,14 +196,26 @@ export default function InvestmentProjectDetail() {
           <CardHeader>
             <CardTitle>{project.title}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
+          <CardContent className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
             <div>
               <p className="text-sm text-muted-foreground">Total Invested</p>
               <Money amount={totalAmount} className="text-xl font-bold" />
             </div>
             <div>
+              <p className="text-sm text-muted-foreground">Active Invested</p>
+              <Money amount={activeAmount} className="text-xl font-bold" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Withdrawn/Refunded</p>
+              <Money amount={withdrawnAmount} className="text-xl font-bold" />
+            </div>
+            <div>
               <p className="text-sm text-muted-foreground">Total Shares</p>
               <p className="text-xl font-bold">{totalShares.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Active Shares</p>
+              <p className="text-xl font-bold">{activeShares.toLocaleString()}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
@@ -226,6 +251,16 @@ export default function InvestmentProjectDetail() {
                 <SelectItem value="REVERSED">Reversed</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={activityFilter} onValueChange={setActivityFilter}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Activity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Activity</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -238,6 +273,7 @@ export default function InvestmentProjectDetail() {
               <TableHead>Shares</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Active</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -254,6 +290,7 @@ export default function InvestmentProjectDetail() {
                 <TableCell>{inv.shares.toLocaleString()}</TableCell>
                 <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
                 <TableCell><StatusBadge status={inv.status} /></TableCell>
+                <TableCell><StatusBadge status={inv.activityStatus || ((inv.isActive ?? inv.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
                 <TableCell className="text-muted-foreground">
                   {new Date(inv.createdAt).toLocaleDateString()}
                 </TableCell>

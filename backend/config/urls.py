@@ -6,6 +6,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.db import models
+from django.db.models import Sum
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -24,13 +25,39 @@ User = get_user_model()
 def dashboard_stats(request):
     """Get dashboard stats based on user role."""
     user = request.user
-    
+
+    invested_statuses = [
+        Investment.Status.COMPLETED,
+        Investment.Status.WITHDRAWN,
+        Investment.Status.REFUNDED,
+        Investment.Status.REVERSED,
+    ]
+    returned_statuses = [
+        Investment.Status.WITHDRAWN,
+        Investment.Status.REFUNDED,
+        Investment.Status.REVERSED,
+    ]
+
+    def sum_field(queryset, field):
+        return queryset.aggregate(total=Sum(field)).get('total') or 0
+
     if user.role == 'ADMIN':
+        investments = Investment.objects.filter(status__in=invested_statuses)
+        active_investments = investments.filter(status=Investment.Status.COMPLETED)
+        returned_investments = investments.filter(status__in=returned_statuses)
         return Response({
             'pending_review_count': Project.objects.filter(status='PENDING_REVIEW').count(),
             'pending_access_requests': AccessRequest.objects.filter(status='PENDING').count(),
             'total_users': User.objects.count(),
-            'total_investments': Investment.objects.filter(status='COMPLETED').count(),
+            'total_investments': investments.count(),
+            'active_investments': active_investments.count(),
+            'withdrawn_investments': returned_investments.count(),
+            'total_invested_amount': sum_field(investments, 'total_amount'),
+            'active_invested_amount': sum_field(active_investments, 'total_amount'),
+            'withdrawn_invested_amount': sum_field(returned_investments, 'total_amount'),
+            'total_shares': sum_field(investments, 'shares'),
+            'active_shares': sum_field(active_investments, 'shares'),
+            'withdrawn_shares': sum_field(returned_investments, 'shares'),
             'total_payments': Payment.objects.filter(status='SUCCESS').count(),
         })
     elif user.role == 'DEVELOPER':
@@ -45,12 +72,21 @@ def dashboard_stats(request):
             'total_shares_sold': sum(p.shares_sold for p in my_projects),
         })
     else:  # INVESTOR
-        my_investments = Investment.objects.filter(investor=user, status='COMPLETED')
+        investments = Investment.objects.filter(investor=user, status__in=invested_statuses)
+        active_investments = investments.filter(status=Investment.Status.COMPLETED)
+        returned_investments = investments.filter(status__in=returned_statuses)
         return Response({
-            'total_invested_projects': my_investments.values('project').distinct().count(),
-            'total_invested_amount': sum(i.total_amount for i in my_investments),
-            'total_shares_owned': sum(i.shares for i in my_investments),
-            'portfolio_value': sum(i.shares * i.project.per_share_price for i in my_investments),
+            'total_invested_projects': investments.values('project').distinct().count(),
+            'active_invested_projects': active_investments.values('project').distinct().count(),
+            'total_invested_amount': sum_field(investments, 'total_amount'),
+            'active_invested_amount': sum_field(active_investments, 'total_amount'),
+            'withdrawn_invested_amount': sum_field(returned_investments, 'total_amount'),
+            'total_shares_owned': sum_field(investments, 'shares'),
+            'active_shares_owned': sum_field(active_investments, 'shares'),
+            'withdrawn_shares_owned': sum_field(returned_investments, 'shares'),
+            'active_investments': active_investments.count(),
+            'withdrawn_investments': returned_investments.count(),
+            'portfolio_value': sum(i.shares * i.project.per_share_price for i in active_investments),
         })
 
 

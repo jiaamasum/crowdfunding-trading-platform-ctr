@@ -21,7 +21,7 @@ import { statsApi } from '@/lib/statsApi';
 import { projectsApi } from '@/lib/projectsApi';
 import { accessRequestsApi, type AccessRequest as ApiAccessRequest } from '@/lib/accessRequestsApi';
 import { MediaImage } from '@/components/common/MediaImage';
-import type { Investment, Project } from '@/types';
+import type { AdminStats, Investment, Project } from '@/types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export default function AdminDashboard() {
@@ -34,6 +34,9 @@ export default function AdminDashboard() {
   const [recentInvestmentRequests, setRecentInvestmentRequests] = useState<Investment[]>([]);
   const [userCount, setUserCount] = useState(0);
   const [totalInvestedAmount, setTotalInvestedAmount] = useState(0);
+  const [activeInvestedAmount, setActiveInvestedAmount] = useState(0);
+  const [withdrawnInvestedAmount, setWithdrawnInvestedAmount] = useState(0);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -88,8 +91,11 @@ export default function AdminDashboard() {
         ]);
 
         if (!isMounted) return;
+        setAdminStats(stats);
         setUserCount(stats.totalUsers);
-        setTotalInvestedAmount(investments.reduce((sum, inv) => sum + inv.totalAmount, 0));
+        setTotalInvestedAmount(stats.totalInvestedAmount);
+        setActiveInvestedAmount(stats.activeInvestedAmount);
+        setWithdrawnInvestedAmount(stats.withdrawnInvestedAmount);
         const sortedInvestments = [...investments].sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -121,17 +127,19 @@ export default function AdminDashboard() {
     { label: 'Investment Requests', value: pendingInvestmentRequestsCount, icon: AlertCircle, color: 'text-warning', bgColor: 'bg-warning/10', link: '/app/admin/investments/requests' },
     { label: 'Investment Approvals', value: pendingInvestmentApprovalsCount, icon: CheckCircle, color: 'text-success', bgColor: 'bg-success/10', link: '/app/admin/investments/processing' },
     { label: 'Total Users', value: userCount, icon: Users, color: 'text-accent', bgColor: 'bg-accent/10', link: '/app/admin/users' },
-    { label: 'Total Investments', value: totalInvestedAmount, icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', isMoney: true, link: '/app/admin/investments' },
+    { label: 'Total Invested', value: totalInvestedAmount, icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', isMoney: true, link: '/app/admin/investments' },
+    { label: 'Active Invested', value: activeInvestedAmount, icon: DollarSign, color: 'text-accent', bgColor: 'bg-accent/10', isMoney: true, link: '/app/admin/investments' },
+    { label: 'Withdrawn/Refunded', value: withdrawnInvestedAmount, icon: DollarSign, color: 'text-destructive', bgColor: 'bg-destructive/10', isMoney: true, link: '/app/admin/investments' },
   ];
 
   // Chart data
   const investmentData = [
-    { month: 'Jun', amount: 50000 },
-    { month: 'Jul', amount: 85000 },
-    { month: 'Aug', amount: 120000 },
-    { month: 'Sep', amount: 165000 },
-    { month: 'Oct', amount: 210000 },
-    { month: 'Nov', amount: 280000 },
+    { month: 'Jun', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 0.25) },
+    { month: 'Jul', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 0.35) },
+    { month: 'Aug', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 0.5) },
+    { month: 'Sep', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 0.65) },
+    { month: 'Oct', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 0.8) },
+    { month: 'Nov', amount: Math.round((adminStats?.totalInvestedAmount || 0) * 1) },
   ];
 
   const projectStatusData = [
