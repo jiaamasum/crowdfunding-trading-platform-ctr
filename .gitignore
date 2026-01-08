@@ -22,3 +22,14 @@ yarn-error.log*
 .vscode/
 .idea/
 backend/client_secret*.json
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+backend/htmlcov/
+pytest_debug.log
+*_debug.log
+*.log
+.pytest_cache/
