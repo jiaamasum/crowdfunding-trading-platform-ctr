@@ -45,11 +45,16 @@ export default function InvestmentsPage() {
     return payments.find(p => p.investmentId === investmentId);
   };
 
-  const completedInvestments = investments.filter((inv) => inv.status === 'COMPLETED');
-  const activeStatuses = new Set(['REQUESTED', 'APPROVED', 'PROCESSING', 'COMPLETED']);
-  const activeInvestments = investments.filter((inv) => activeStatuses.has(inv.status));
-  const totalInvested = completedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
-  const totalShares = completedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+  const activeInvestments = investments.filter((inv) => inv.isActive);
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
+  const totalInvested = investedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalShares = investedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeInvested = activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeShares = activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const withdrawnInvested = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   if (loading) {
     return (
@@ -71,7 +76,7 @@ export default function InvestmentsPage() {
   return (
     <PageContainer title="Investments" description="Track your investment history and receipts">
       {/* Summary Cards */}
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Invested</p>
@@ -80,8 +85,26 @@ export default function InvestmentsPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Active Invested</p>
+            <Money amount={activeInvested} className="text-2xl font-bold" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Withdrawn</p>
+            <Money amount={withdrawnInvested} className="text-2xl font-bold" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Shares</p>
             <p className="text-2xl font-bold">{totalShares.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Active Shares</p>
+            <p className="text-2xl font-bold">{activeShares.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>
@@ -116,6 +139,7 @@ export default function InvestmentsPage() {
                     <TableHead>Price/Share</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Active</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -134,6 +158,7 @@ export default function InvestmentsPage() {
                         <TableCell><Money amount={inv.pricePerShare} /></TableCell>
                         <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
                         <TableCell><StatusBadge status={inv.status} /></TableCell>
+                        <TableCell><StatusBadge status={inv.isActive ? 'ACTIVE' : 'INACTIVE'} /></TableCell>
                         <TableCell className="text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">

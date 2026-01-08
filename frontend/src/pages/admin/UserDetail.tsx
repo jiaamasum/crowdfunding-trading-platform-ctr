@@ -176,19 +176,18 @@ export default function UserDetailPage() {
     );
   }
 
-  const completedInvestments = investments.filter((inv) => inv.status === 'COMPLETED');
-  const totalInvested = completedInvestments.reduce((sum, i) => sum + i.totalAmount, 0);
-  const totalShares = completedInvestments.reduce((sum, i) => sum + i.shares, 0);
-  const totalRaised = projects.reduce((sum, p) => sum + (p.sharesSold * p.perSharePrice), 0);
-  const activeInvestments = investments.filter((inv) => ![
-    'CANCELLED',
-    'REFUNDED',
-    'WITHDRAWN',
-    'REVERSED',
-    'REJECTED',
-    'EXPIRED',
-  ].includes(inv.status));
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
+  const activeInvestments = investments.filter((inv) => inv.isActive ?? inv.status === 'COMPLETED');
+  const totalInvested = investedInvestments.reduce((sum, i) => sum + i.totalAmount, 0);
+  const totalShares = investedInvestments.reduce((sum, i) => sum + i.shares, 0);
   const activeInvestmentTotal = activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeShares = activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const withdrawnInvestedTotal = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalRaised = projects.reduce((sum, p) => sum + (p.sharesSold * p.perSharePrice), 0);
+  const activeInvestmentCount = activeInvestments.length;
 
   return (
     <div className="space-y-6">
@@ -261,7 +260,7 @@ export default function UserDetailPage() {
 
       {/* Stats */}
       {user.role === 'INVESTOR' && (
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -279,8 +278,8 @@ export default function UserDetailPage() {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalShares.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Shares Owned</p>
+                <p className="text-2xl font-bold">${activeInvestmentTotal.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Active Invested</p>
               </div>
             </CardContent>
           </Card>
@@ -290,8 +289,41 @@ export default function UserDetailPage() {
                 <Receipt className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{investments.length}</p>
-                <p className="text-sm text-muted-foreground">Investments</p>
+                <p className="text-2xl font-bold">${withdrawnInvestedTotal.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Withdrawn/Refunded</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-accent" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{totalShares.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Total Shares</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{activeShares.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Active Shares</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center">
+                <Receipt className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{activeInvestmentCount}</p>
+                <p className="text-sm text-muted-foreground">Active Investments</p>
               </div>
             </CardContent>
           </Card>
@@ -364,6 +396,7 @@ export default function UserDetailPage() {
                       <TableHead>Shares</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Active</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -390,6 +423,7 @@ export default function UserDetailPage() {
                           <TableCell>{investment.shares.toLocaleString()}</TableCell>
                           <TableCell><Money amount={investment.totalAmount} /></TableCell>
                           <TableCell><StatusBadge status={investment.status} /></TableCell>
+                          <TableCell><StatusBadge status={investment.activityStatus || ((investment.isActive ?? investment.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
                           <TableCell className="text-muted-foreground">
                             {new Date(investment.createdAt).toLocaleDateString()}
                           </TableCell>

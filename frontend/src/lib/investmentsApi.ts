@@ -1,26 +1,31 @@
 import apiClient from '@/lib/apiClient';
 import type { Investment, Payment } from '@/types';
 
-const mapInvestment = (item: any): Investment => ({
-  id: String(item.id),
-  investorId: String(item.investor),
-  investorName: item.investor_name || '',
-  investorEmail: item.investor_email || '',
-  projectId: String(item.project),
-  projectTitle: item.project_title || '',
-  shares: Number(item.shares || 0),
-  pricePerShare: Number(item.price_per_share || 0),
-  totalAmount: Number(item.total_amount || 0),
-  status: item.status,
-  requestNote: item.request_note || undefined,
-  adminNote: item.admin_note || undefined,
-  reviewedAt: item.reviewed_at || undefined,
-  reviewedBy: item.reviewed_by ? String(item.reviewed_by) : undefined,
-  reviewedByName: item.reviewed_by_name || undefined,
-  approvalExpiresAt: item.approval_expires_at || undefined,
-  createdAt: item.created_at || new Date().toISOString(),
-  completedAt: item.completed_at || undefined,
-});
+const mapInvestment = (item: any): Investment => {
+  const isActive = item.is_active ?? item.status === 'COMPLETED';
+  return {
+    id: String(item.id),
+    investorId: String(item.investor),
+    investorName: item.investor_name || '',
+    investorEmail: item.investor_email || '',
+    projectId: String(item.project),
+    projectTitle: item.project_title || '',
+    shares: Number(item.shares || 0),
+    pricePerShare: Number(item.price_per_share || 0),
+    totalAmount: Number(item.total_amount || 0),
+    status: item.status,
+    requestNote: item.request_note || undefined,
+    adminNote: item.admin_note || undefined,
+    reviewedAt: item.reviewed_at || undefined,
+    reviewedBy: item.reviewed_by ? String(item.reviewed_by) : undefined,
+    reviewedByName: item.reviewed_by_name || undefined,
+    approvalExpiresAt: item.approval_expires_at || undefined,
+    createdAt: item.created_at || new Date().toISOString(),
+    completedAt: item.completed_at || undefined,
+    isActive,
+    activityStatus: item.activity_status || (isActive ? 'ACTIVE' : 'INACTIVE'),
+  };
+};
 
 const mapPayment = (item: any): Payment => ({
   id: String(item.id),

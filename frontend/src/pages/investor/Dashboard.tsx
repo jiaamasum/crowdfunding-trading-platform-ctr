@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PageContainer } from '@/components/ui/page-container';
 import { 
   TrendingUp, DollarSign, PieChart, FolderOpen, ChevronRight, 
-  Heart, GitCompare, ArrowUpRight, ArrowDownRight 
+  Heart, GitCompare, ArrowUpRight, ArrowDownRight, Layers
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
@@ -48,8 +48,28 @@ export default function InvestorDashboard() {
     loadData();
   }, [user]);
 
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+  const activeInvestments = investments.filter((inv) => inv.isActive);
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
+
+  const totalInvestedAmount = stats?.totalInvestedAmount
+    ?? investedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeInvestedAmount = stats?.activeInvestedAmount
+    ?? activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const withdrawnInvestedAmount = stats?.withdrawnInvestedAmount
+    ?? withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalSharesOwned = stats?.totalSharesOwned
+    ?? investedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeSharesOwned = stats?.activeSharesOwned
+    ?? activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeProjects = stats?.activeInvestedProjects
+    ?? new Set(activeInvestments.map((inv) => inv.projectId)).size;
+  const portfolioValue = stats?.portfolioValue ?? activeInvestedAmount;
+
   // Prepare chart data
-  const allocationData = investments.reduce((acc, inv) => {
+  const allocationData = activeInvestments.reduce((acc, inv) => {
     const existing = acc.find(a => a.name === inv.projectTitle);
     if (existing) {
       existing.value += inv.totalAmount;
@@ -61,9 +81,9 @@ export default function InvestorDashboard() {
   const totalAllocation = allocationData.reduce((sum, item) => sum + item.value, 0);
 
   const timelineData = (() => {
-    if (investments.length === 0) return [];
+    if (investedInvestments.length === 0) return [];
     const buckets = new Map<string, number>();
-    investments.forEach((inv) => {
+    investedInvestments.forEach((inv) => {
       const date = new Date(inv.createdAt);
       const key = date.toLocaleString('en-US', { month: 'short' });
       buckets.set(key, (buckets.get(key) || 0) + inv.totalAmount);
@@ -100,28 +120,46 @@ export default function InvestorDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Invested"
-          value={`$${(stats?.totalInvestedAmount || 0).toLocaleString()}`}
+          value={`$${totalInvestedAmount.toLocaleString()}`}
           icon={<DollarSign className="h-5 w-5" />}
           description="Across all projects"
         />
         <StatsCard
-          title="Projects Invested"
-          value={stats?.totalInvestedProjects || 0}
-          icon={<FolderOpen className="h-5 w-5" />}
-          description="Active investments"
+          title="Active Invested"
+          value={`$${activeInvestedAmount.toLocaleString()}`}
+          icon={<ArrowUpRight className="h-5 w-5" />}
+          description="Completed and active"
         />
         <StatsCard
           title="Shares Owned"
-          value={(stats?.totalSharesOwned || 0).toLocaleString()}
+          value={totalSharesOwned.toLocaleString()}
           icon={<PieChart className="h-5 w-5" />}
           description="Total shares"
         />
         <StatsCard
+          title="Active Shares"
+          value={activeSharesOwned.toLocaleString()}
+          icon={<Layers className="h-5 w-5" />}
+          description="Active holdings"
+        />
+        <StatsCard
+          title="Withdrawn"
+          value={`$${withdrawnInvestedAmount.toLocaleString()}`}
+          icon={<ArrowDownRight className="h-5 w-5" />}
+          description="Refunded or withdrawn"
+        />
+        <StatsCard
+          title="Active Projects"
+          value={activeProjects}
+          icon={<FolderOpen className="h-5 w-5" />}
+          description="Currently invested"
+        />
+        <StatsCard
           title="Portfolio Value"
-          value={`$${(stats?.portfolioValue || 0).toLocaleString()}`}
+          value={`$${portfolioValue.toLocaleString()}`}
           icon={<TrendingUp className="h-5 w-5" />}
           trend={{ value: 15, isPositive: true }}
-          description="vs. invested"
+          description="Active holdings"
         />
       </div>
 

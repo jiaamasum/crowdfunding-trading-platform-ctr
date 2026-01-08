@@ -37,6 +37,8 @@ const getVariantForStatus = (status: string): VariantProps<typeof statusBadgeVar
   const statusLower = status.toLowerCase().replace(/_/g, '');
   
   const variantMap: Record<string, VariantProps<typeof statusBadgeVariants>["variant"]> = {
+    active: "success",
+    inactive: "default",
     draft: "draft",
     pendingreview: "pending",
     pending: "pending",
@@ -62,6 +64,8 @@ const getVariantForStatus = (status: string): VariantProps<typeof statusBadgeVar
 
 const getStatusLabel = (status: string): string => {
   const labelMap: Record<string, string> = {
+    ACTIVE: "Active",
+    INACTIVE: "Inactive",
     DRAFT: "Draft",
     PENDING_REVIEW: "Pending Review",
     PENDING: "Pending",
