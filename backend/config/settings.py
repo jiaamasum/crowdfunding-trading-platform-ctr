@@ -22,6 +22,9 @@ SECRET_KEY = require_env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = require_env('DEBUG').lower() == 'true'
 
+# Optional debug flag for Supabase auth logging.
+SUPABASE_AUTH_DEBUG = os.environ.get('SUPABASE_AUTH_DEBUG', '').lower() == 'true'
+
 ALLOWED_HOSTS = [host.strip() for host in require_env('ALLOWED_HOSTS').split(',') if host.strip()]
 
 

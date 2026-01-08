@@ -23,8 +23,8 @@ import {
   MOCK_USERS,
 } from './mockData';
 
-// Simulated API delay disabled for performance
-const delay = (ms: number = 0) => new Promise(resolve => setTimeout(resolve, ms));
+// Simulated API delay disabled for performance.
+const delay = (_ms: number = 0) => Promise.resolve();
 
 // API Base URL (would be used in production)
 const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
