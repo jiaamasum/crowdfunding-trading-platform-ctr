@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, StatsCard } from '@/components/ui/card';
@@ -80,20 +80,38 @@ export default function InvestorDashboard() {
   }, [] as { name: string; value: number }[]);
   const totalAllocation = allocationData.reduce((sum, item) => sum + item.value, 0);
 
-  const timelineData = (() => {
+  const timelineData = useMemo(() => {
     if (investedInvestments.length === 0) return [];
-    const buckets = new Map<string, number>();
+    const buckets = new Map<number, number>();
     investedInvestments.forEach((inv) => {
       const date = new Date(inv.createdAt);
-      const key = date.toLocaleString('en-US', { month: 'short' });
+      const key = new Date(date.getFullYear(), date.getMonth(), 1).getTime();
       buckets.set(key, (buckets.get(key) || 0) + inv.totalAmount);
     });
-    return Array.from(buckets.entries()).map(([month, amount]) => ({ month, amount }));
-  })();
+    return Array.from(buckets.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([timestamp, amount]) => ({
+        month: new Date(timestamp).toLocaleString('en-US', { month: 'short' }),
+        amount,
+      }));
+  }, [investedInvestments]);
+
+  const portfolioTrend = useMemo(() => {
+    if (timelineData.length < 2) {
+      return { value: 0, isPositive: true };
+    }
+    const previous = timelineData[timelineData.length - 2].amount;
+    const current = timelineData[timelineData.length - 1].amount;
+    if (previous <= 0) {
+      return { value: current > 0 ? 100 : 0, isPositive: current >= 0 };
+    }
+    const change = ((current - previous) / previous) * 100;
+    return { value: Math.round(Math.abs(change) * 10) / 10, isPositive: change >= 0 };
+  }, [timelineData]);
 
   if (loading) {
     return (
-      <PageContainer title="Dashboard">
+      <PageContainer title="Investor Dashboard">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20" /></CardContent></Card>
@@ -158,7 +176,7 @@ export default function InvestorDashboard() {
           title="Portfolio Value"
           value={`$${portfolioValue.toLocaleString()}`}
           icon={<TrendingUp className="h-5 w-5" />}
-          trend={{ value: 15, isPositive: true }}
+          trend={portfolioTrend}
           description="Active holdings"
         />
       </div>

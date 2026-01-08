@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Project, ProjectImage, Favorite, Compare, ProjectEditRequest
+from .models import Project, ProjectImage, Favorite, Compare, ProjectEditRequest, ProjectArchiveRequest
 from investments.models import Investment
 
 User = get_user_model()
@@ -211,5 +211,18 @@ class ProjectEditRequestSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'project', 'project_title', 'requested_by', 'requested_by_name',
             'changes', 'status', 'review_note', 'created_at', 'reviewed_at', 'reviewed_by',
+        ]
+        read_only_fields = ['id', 'status', 'created_at', 'reviewed_at', 'reviewed_by']
+
+
+class ProjectArchiveRequestSerializer(serializers.ModelSerializer):
+    project_title = serializers.CharField(source='project.title', read_only=True)
+    requested_by_name = serializers.CharField(source='requested_by.name', read_only=True)
+
+    class Meta:
+        model = ProjectArchiveRequest
+        fields = [
+            'id', 'project', 'project_title', 'requested_by', 'requested_by_name',
+            'status', 'review_note', 'created_at', 'reviewed_at', 'reviewed_by',
         ]
         read_only_fields = ['id', 'status', 'created_at', 'reviewed_at', 'reviewed_by']

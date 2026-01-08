@@ -50,7 +50,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                 except Exception:
                     pass
 
-            log_debug(f"Received Token: {token[:10]}...{token[-10:] if len(token) > 20 else ''}")
+            log_debug("Received Supabase token")
             
             # Try JWKS verification first (for ECC keys)
             try:
@@ -66,14 +66,11 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                 )
                 log_debug("JWKS Verification SUCCESS")
             except Exception as jwks_error:
-                log_debug(f"JWKS Verification FAILED: {str(jwks_error)}")
+                log_debug("JWKS Verification FAILED")
                 # Fallback to HS256 with secret if JWKS fails
                 if settings.SUPABASE_JWT_SECRET:
-                    log_debug("Attempting HS256 fallback with Secret")
+                    log_debug("Attempting HS256 fallback")
                     try:
-                        # Log secret length for sanity check (don't log full secret)
-                        log_debug(f"Secret length: {len(settings.SUPABASE_JWT_SECRET)}")
-                        
                         payload = jwt.decode(
                             token,
                             settings.SUPABASE_JWT_SECRET,
@@ -82,7 +79,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                         )
                         log_debug("HS256 Verification SUCCESS")
                     except Exception as hs256_error:
-                        log_debug(f"HS256 Verification FAILED: {str(hs256_error)}")
+                        log_debug("HS256 Verification FAILED")
                         raise hs256_error
                 else:
                     log_debug("No Secret found for fallback")
@@ -90,7 +87,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
             
             supabase_user_id = payload.get('sub')
             email = payload.get('email')
-            log_debug(f"Payload Decoded. User: {email}")
+            log_debug("Payload decoded")
             
             if not supabase_user_id or not email:
                 raise exceptions.AuthenticationFailed('Invalid token payload')
@@ -135,7 +132,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
             log_debug("Error: Token Expired")
             raise exceptions.AuthenticationFailed('Token has expired')
         except jwt.InvalidTokenError as e:
-            log_debug(f"Error: Invalid Token - {str(e)}")
+            log_debug("Error: Invalid Token")
             try:
                 unverified = jwt.decode(
                     token,
@@ -151,7 +148,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                 return None
             raise exceptions.AuthenticationFailed(f'Invalid token: {str(e)}')
         except Exception as e:
-            log_debug(f"Error: General Exception - {str(e)}")
+            log_debug("Error: General Exception")
             raise exceptions.AuthenticationFailed(f'Authentication failed: {str(e)}')
     
     def _get_first_name(self, metadata):

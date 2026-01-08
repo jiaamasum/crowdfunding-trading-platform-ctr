@@ -23,35 +23,35 @@ export default function ComparePage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { compareList, removeFromCompareRemote, clearCompare } = useAppStore();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [compareItems, setCompareItems] = useState<Array<{ id: string; project: Project }>>([]);
   const [comparison, setComparison] = useState<ComparatorResponse | null>(null);
 
   useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const data = await projectsApi.getAll();
-        setProjects(data);
-      } catch (error) {
-        console.error('Failed to load projects', error);
-      }
-    };
-
-    loadProjects();
-  }, []);
-
-  useEffect(() => {
     if (compareList.length === 0) {
+      setCompareItems([]);
       setComparison(null);
       return;
     }
-    comparatorApi.compare(compareList)
-      .then(setComparison)
-      .catch((error) => console.error('Failed to load comparison data', error));
+    projectsApi.getCompare()
+      .then(setCompareItems)
+      .catch((error) => console.error('Failed to load compare list', error));
   }, [compareList]);
 
+  const compareProjectIds = useMemo(() => compareItems.map((item) => item.project.id), [compareItems]);
+
+  useEffect(() => {
+    if (compareProjectIds.length === 0) {
+      setComparison(null);
+      return;
+    }
+    comparatorApi.compare(compareProjectIds)
+      .then(setComparison)
+      .catch((error) => console.error('Failed to load comparison data', error));
+  }, [compareProjectIds]);
+
   const compareProjects = useMemo(() => {
-    return projects.filter(p => compareList.includes(p.id));
-  }, [compareList, projects]);
+    return compareItems.map((item) => item.project);
+  }, [compareItems]);
 
   if (compareProjects.length === 0) {
     return (

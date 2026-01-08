@@ -14,23 +14,9 @@ const apiClient = axios.create({
 // Token management
 export const getAccessToken = () => localStorage.getItem('access_token');
 export const getRefreshToken = () => localStorage.getItem('refresh_token');
-export const getSupabaseAccessToken = () => localStorage.getItem('supabase_access_token');
-export const getSupabaseRefreshToken = () => localStorage.getItem('supabase_refresh_token');
 export const setTokens = (access: string, refresh: string) => {
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);
-};
-export const setSupabaseTokens = (access?: string | null, refresh?: string | null) => {
-    if (access) {
-        localStorage.setItem('supabase_access_token', access);
-    } else {
-        localStorage.removeItem('supabase_access_token');
-    }
-    if (refresh) {
-        localStorage.setItem('supabase_refresh_token', refresh);
-    } else {
-        localStorage.removeItem('supabase_refresh_token');
-    }
 };
 export const clearTokens = () => {
     localStorage.removeItem('access_token');

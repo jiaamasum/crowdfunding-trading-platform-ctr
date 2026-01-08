@@ -18,7 +18,6 @@ import {
   MoreHorizontal,
   Eye,
   Edit,
-  Upload,
   Send,
   Archive,
   FolderKanban
@@ -90,9 +89,13 @@ export default function DeveloperProjects() {
     if (!archiveTarget) return;
     setIsArchiving(true);
     try {
-      const updated = await projectsApi.archive(archiveTarget.id);
-      setProjects((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-      toast({ title: 'Project archived', description: `${archiveTarget.title} was archived.` });
+      const result = await projectsApi.archive(archiveTarget.id);
+      if (result.project) {
+        setProjects((prev) => prev.map((item) => (item.id === result.project!.id ? result.project! : item)));
+        toast({ title: 'Project archived', description: `${archiveTarget.title} was archived.` });
+      } else {
+        toast({ title: 'Archive request submitted', description: `${archiveTarget.title} is pending admin approval.` });
+      }
       setArchiveOpen(false);
       setArchiveTarget(null);
     } catch (error) {
@@ -248,14 +251,6 @@ export default function DeveloperProjects() {
                             </Link>
                           </DropdownMenuItem>
                         )}
-                        {canEdit(project.status) && (
-                          <DropdownMenuItem asChild>
-                            <Link to={`/app/developer/projects/${project.id}/media`}>
-                              <Upload className="h-4 w-4 mr-2" />
-                              {project.status === 'APPROVED' ? 'Request Media Update' : 'Manage Media'}
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
                         {canSubmit(project.status) && (
                           <DropdownMenuItem asChild>
                             <Link to={`/app/developer/projects/${project.id}/submit`}>
@@ -265,7 +260,7 @@ export default function DeveloperProjects() {
                         )}
                         {project.status !== 'ARCHIVED' && (
                           <DropdownMenuItem onClick={() => handleArchive(project)}>
-                            <Archive className="h-4 w-4 mr-2" /> Archive
+                            <Archive className="h-4 w-4 mr-2" /> Request Archive
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -282,8 +277,8 @@ export default function DeveloperProjects() {
         open={archiveOpen}
         onOpenChange={setArchiveOpen}
         title="Archive project?"
-        description={archiveTarget ? `Archive "${archiveTarget.title}"? This moves it to Archived Projects.` : 'Archive this project?'}
-        confirmLabel="Archive"
+        description={archiveTarget ? `Request archive for "${archiveTarget.title}"? Admin approval is required and investors will be withdrawn on approval.` : 'Request archive for this project?'}
+        confirmLabel="Request Archive"
         cancelLabel="Cancel"
         variant="destructive"
         isLoading={isArchiving}

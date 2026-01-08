@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 import DashboardHeader from '@/components/common/DashboardHeader';
 
 const navItems = [
-  { path: '/app/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+  { path: '/app/admin', icon: LayoutDashboard, label: 'Admin Dashboard', exact: true },
   { path: '/app/admin/projects/review-queue', icon: FileCheck, label: 'Project Requests', badge: 'review' },
   { path: '/app/admin/access-requests', icon: ShieldCheck, label: 'Access Requests', badge: 'access' },
   { path: '/app/admin/users', icon: Users, label: 'Users' },
@@ -60,15 +60,18 @@ export default function AdminLayout() {
 
     const loadCounts = async () => {
       try {
-        const [projects, accessRequests, editRequests, investmentRequests, processingInvestments] = await Promise.all([
+        const [projects, accessRequests, editRequests, archiveRequests, investmentRequests, processingInvestments] = await Promise.all([
           projectsApi.getAll(),
           accessRequestsApi.listAll('PENDING'),
           projectsApi.listEditRequests('PENDING'),
+          projectsApi.listArchiveRequests('PENDING'),
           investmentsApi.list({ status: 'REQUESTED' }),
           investmentsApi.list({ status: 'PROCESSING' }),
         ]);
         if (!isMounted) return;
-        setPendingReviewCount(projects.filter(p => p.status === 'PENDING_REVIEW').length + editRequests.length);
+        setPendingReviewCount(
+          projects.filter(p => p.status === 'PENDING_REVIEW').length + editRequests.length + archiveRequests.length
+        );
         setPendingAccessCount(accessRequests.length);
         setPendingInvestmentCount(investmentRequests.length);
         setProcessingInvestmentCount(processingInvestments.length);

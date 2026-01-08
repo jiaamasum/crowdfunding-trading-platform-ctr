@@ -23,13 +23,13 @@ class InvestmentSerializer(serializers.ModelSerializer):
             'total_amount', 'status', 'is_active', 'activity_status',
             'request_note', 'admin_note',
             'reviewed_at', 'reviewed_by', 'reviewed_by_name',
-            'approval_expires_at', 'created_at', 'completed_at'
+            'approval_expires_at', 'created_at', 'completed_at', 'withdrawn_at'
         ]
         read_only_fields = [
             'id', 'investor', 'price_per_share', 'total_amount', 'status',
             'is_active', 'activity_status',
             'reviewed_at', 'reviewed_by', 'approval_expires_at',
-            'created_at', 'completed_at'
+            'created_at', 'completed_at', 'withdrawn_at'
         ]
 
     def get_is_active(self, obj):
@@ -83,19 +83,6 @@ class InvestmentCreateSerializer(serializers.ModelSerializer):
         for investment in expired_approvals:
             expire_investment_request(investment)
 
-        active_statuses = [
-            Investment.Status.REQUESTED,
-            Investment.Status.APPROVED,
-            Investment.Status.PROCESSING,
-        ]
-        existing = Investment.objects.filter(
-            investor=user,
-            project=project,
-            status__in=active_statuses,
-        ).exists()
-        if existing:
-            raise serializers.ValidationError({'project': 'You already have an active investment request for this project'})
-        
         return attrs
     
     def create(self, validated_data):

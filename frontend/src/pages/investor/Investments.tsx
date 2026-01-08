@@ -140,7 +140,8 @@ export default function InvestmentsPage() {
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Active</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Invested On</TableHead>
+                    <TableHead>Withdrawn On</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -159,7 +160,12 @@ export default function InvestmentsPage() {
                         <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
                         <TableCell><StatusBadge status={inv.status} /></TableCell>
                         <TableCell><StatusBadge status={inv.isActive ? 'ACTIVE' : 'INACTIVE'} /></TableCell>
-                        <TableCell className="text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {inv.completedAt ? new Date(inv.completedAt).toLocaleDateString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {inv.withdrawnAt ? new Date(inv.withdrawnAt).toLocaleDateString() : '—'}
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Link to={`/projects/${inv.projectId}`}>

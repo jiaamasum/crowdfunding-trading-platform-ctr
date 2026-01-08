@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Badge } from '@/components/ui/badge';
 import { Money, SharesProgress, LockedField } from '@/components/ui/money';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -30,6 +32,27 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Project, AccessRequestStatus, Investment } from '@/types';
 
+const getRequestErrorMessage = (error: unknown, fallback: string) => {
+  if (!axios.isAxiosError(error)) {
+    return (error as { message?: string })?.message || fallback;
+  }
+
+  const data = error.response?.data;
+  if (typeof data === 'string') return data;
+  if (data?.detail) return data.detail;
+  if (data?.error) return data.error;
+
+  const firstKey = data ? Object.keys(data)[0] : null;
+  const firstValue = firstKey ? data[firstKey] : null;
+  if (Array.isArray(firstValue) && firstValue.length > 0) {
+    return firstValue[0] || fallback;
+  }
+  if (typeof firstValue === 'string') {
+    return firstValue;
+  }
+  return error.message || fallback;
+};
+
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -53,7 +76,7 @@ export default function ProjectDetailPage() {
   const [accessMessage, setAccessMessage] = useState('');
   const [accessConfirmed, setAccessConfirmed] = useState(false);
   const [submittingAccess, setSubmittingAccess] = useState(false);
-  const [investmentRequest, setInvestmentRequest] = useState<Investment | null>(null);
+  const [investments, setInvestments] = useState<Investment[]>([]);
   const [requestingInvestment, setRequestingInvestment] = useState(false);
   const [investmentNote, setInvestmentNote] = useState('');
   const [investmentShares, setInvestmentShares] = useState(1);
@@ -93,13 +116,13 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     const loadInvestmentRequest = async () => {
       if (!user || user.role !== 'INVESTOR' || !id) {
-        setInvestmentRequest(null);
+        setInvestments([]);
         return;
       }
       try {
         const items = await investmentsApi.list({ project: id });
-        const latest = items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        setInvestmentRequest(latest || null);
+        const sorted = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setInvestments(sorted);
       } catch (error) {
         console.error('Failed to load investment request', error);
       }
@@ -219,7 +242,7 @@ export default function ProjectDetailPage() {
     } catch (error) {
       toast({
         title: 'Request failed',
-        description: error instanceof Error ? error.message : 'Please try again.',
+        description: getRequestErrorMessage(error, 'Please try again.'),
         variant: 'destructive',
       });
     } finally {
@@ -237,14 +260,15 @@ export default function ProjectDetailPage() {
       });
       return;
     }
-    if (investmentShares < 1 || investmentShares > project.remainingShares) {
+    const maxShares = Number(project.remainingShares) || 0;
+    if (!Number.isFinite(investmentShares) || !Number.isInteger(investmentShares) || investmentShares < 1 || investmentShares > maxShares) {
       toast({ title: 'Invalid share amount', variant: 'destructive' });
       return;
     }
     setRequestingInvestment(true);
     try {
       const request = await investmentsApi.requestInvestment(project.id, investmentShares, investmentNote);
-      setInvestmentRequest(request);
+      setInvestments((prev) => [request, ...prev]);
       setShowInvestDialog(false);
       toast({
         title: 'Investment request submitted',
@@ -254,7 +278,7 @@ export default function ProjectDetailPage() {
     } catch (error) {
       toast({
         title: 'Request failed',
-        description: error instanceof Error ? error.message : 'Please try again.',
+        description: getRequestErrorMessage(error, 'Please try again.'),
         variant: 'destructive',
       });
     } finally {
@@ -290,18 +314,25 @@ export default function ProjectDetailPage() {
   const isInvestor = user?.role === 'INVESTOR';
   const isBanned = Boolean(user?.isBanned);
   const isAdmin = user?.role === 'ADMIN';
+  const latestInvestment = investments[0] || null;
+  const activeInvestmentStatuses = new Set(['REQUESTED', 'APPROVED', 'PROCESSING']);
+  const activeInvestment = investments.find((inv) => activeInvestmentStatuses.has(inv.status)) || null;
   const isExpiredApproval = Boolean(
-    investmentRequest?.status === 'APPROVED'
-      && investmentRequest?.approvalExpiresAt
-      && new Date(investmentRequest.approvalExpiresAt) < new Date()
+    activeInvestment?.status === 'APPROVED'
+      && activeInvestment?.approvalExpiresAt
+      && new Date(activeInvestment.approvalExpiresAt) < new Date()
   );
-  const investmentStatus = isExpiredApproval ? 'EXPIRED' : investmentRequest?.status;
-  const hasInvestmentAccess = ['PROCESSING', 'COMPLETED'].includes(investmentStatus || '');
+  const hasActiveInvestment = Boolean(activeInvestment) && !isExpiredApproval;
+  const investmentStatus = isExpiredApproval ? 'EXPIRED' : activeInvestment?.status ?? latestInvestment?.status;
+  const hasInvestmentAccess = investments.some((inv) => ['PROCESSING', 'COMPLETED'].includes(inv.status));
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED', 'PROCESSING']);
+  const hasInvested = investments.some((inv) => investedStatuses.has(inv.status));
   const hasAccess = accessStatus === 'APPROVED' || isAdmin || hasInvestmentAccess;
   const canRequestAccess = user?.isVerified && isInvestor && project.hasRestrictedFields && !accessStatus && !hasInvestmentAccess && !isBanned;
-  const canRequestInvestment = user?.isVerified && isInvestor && project.status === 'APPROVED' && project.remainingShares > 0 && !investmentStatus && !isBanned;
-  const canPayInvestment = investmentStatus === 'APPROVED' && !isBanned;
-  const canReRequestInvestment = ['EXPIRED', 'REJECTED', 'REFUNDED', 'WITHDRAWN', 'REVERSED', 'CANCELLED'].includes(investmentStatus || '');
+  const canRequestInvestment = user?.isVerified && isInvestor && project.status === 'APPROVED' && project.remainingShares > 0 && !hasActiveInvestment && !isBanned;
+  const canPayInvestment = activeInvestment?.status === 'APPROVED' && !isExpiredApproval && !isBanned;
+  const canReRequestInvestment = canRequestInvestment && ['EXPIRED', 'REJECTED', 'REFUNDED', 'WITHDRAWN', 'REVERSED', 'CANCELLED'].includes(investmentStatus || '');
+  const requestCtaLabel = canReRequestInvestment ? 'Request Again' : (hasInvested ? 'Invest Again' : 'Request to Invest');
 
   return (
     <div className="min-h-screen bg-background">
@@ -357,7 +388,14 @@ export default function ProjectDetailPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-display font-bold mb-2">{project.title}</h1>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h1 className="text-3xl font-display font-bold">{project.title}</h1>
+                    {isInvestor && hasInvested && (
+                      <Badge variant="outline" className="bg-success text-success-foreground border-success/60 shadow-soft-sm">
+                        Invested
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-muted-foreground">by {project.developerName}</p>
                 </div>
                 {user?.role === 'INVESTOR' && (
@@ -615,7 +653,7 @@ export default function ProjectDetailPage() {
                     <div className="space-y-3 pt-4">
                       {canRequestInvestment && (
                         <Button variant="highlight" className="w-full" size="lg" onClick={() => setShowInvestDialog(true)}>
-                          Request to Invest
+                          {requestCtaLabel}
                         </Button>
                       )}
                       {canPayInvestment && (
@@ -625,9 +663,9 @@ export default function ProjectDetailPage() {
                           </Button>
                         </Link>
                       )}
-                      {investmentStatus === 'APPROVED' && investmentRequest?.approvalExpiresAt && (
+                      {investmentStatus === 'APPROVED' && activeInvestment?.approvalExpiresAt && (
                         <p className="text-xs text-center text-muted-foreground">
-                          Approval expires on {new Date(investmentRequest.approvalExpiresAt).toLocaleDateString()}
+                          Approval expires on {new Date(activeInvestment.approvalExpiresAt).toLocaleDateString()}
                         </p>
                       )}
                       {investmentStatus === 'REQUESTED' && (
@@ -641,11 +679,6 @@ export default function ProjectDetailPage() {
                       )}
                       {investmentStatus === 'COMPLETED' && (
                         <p className="text-sm text-center text-success">Investment completed</p>
-                      )}
-                      {canReRequestInvestment && (
-                        <Button variant="outline" className="w-full" onClick={() => setShowInvestDialog(true)}>
-                          Request Again
-                        </Button>
                       )}
                       {canRequestAccess && (
                         <Button variant="outline" className="w-full" onClick={() => setShowAccessDialog(true)}>
@@ -727,8 +760,13 @@ export default function ProjectDetailPage() {
                 type="number"
                 min={1}
                 max={project.remainingShares}
+                step={1}
+                inputMode="numeric"
                 value={investmentShares}
-                onChange={(e) => setInvestmentShares(Number(e.target.value))}
+                onChange={(e) => {
+                  const nextValue = Number(e.target.value);
+                  setInvestmentShares(Number.isFinite(nextValue) ? nextValue : 0);
+                }}
               />
             </div>
             <div className="space-y-2">
