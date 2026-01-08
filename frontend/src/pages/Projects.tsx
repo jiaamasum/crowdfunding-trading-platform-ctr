@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SearchBar } from '@/components/ui/search-bar';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils';
 import Footer from '@/components/common/Footer';
 import { projectsApi } from '@/lib/projectsApi';
 import { useToast } from '@/hooks/use-toast';
+import { investmentsApi } from '@/lib/investmentsApi';
 import { MediaImage } from '@/components/common/MediaImage';
 
 import Header from '@/components/common/Header';
@@ -44,6 +46,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [investedProjectIds, setInvestedProjectIds] = useState<Set<string>>(new Set());
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
 
@@ -64,6 +67,27 @@ export default function ProjectsPage() {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    const loadInvestedProjects = async () => {
+      if (!user || user.role !== 'INVESTOR') {
+        setInvestedProjectIds(new Set());
+        return;
+      }
+      try {
+        const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED', 'PROCESSING']);
+        const investments = await investmentsApi.list();
+        const investedIds = investments
+          .filter((inv) => investedStatuses.has(inv.status))
+          .map((inv) => inv.projectId);
+        setInvestedProjectIds(new Set(investedIds));
+      } catch (error) {
+        console.error('Failed to load investments', error);
+      }
+    };
+
+    loadInvestedProjects();
+  }, [user]);
 
   useEffect(() => {
     setPage(1);
@@ -331,6 +355,13 @@ export default function ProjectsPage() {
                       <div className="absolute top-3 left-3">
                         <StatusBadge status={project.status} />
                       </div>
+                      {user?.role === 'INVESTOR' && investedProjectIds.has(project.id) && (
+                        <div className="absolute bottom-3 left-3">
+                          <Badge variant="outline" className="bg-success text-success-foreground border-success/60 shadow-soft-sm">
+                            Invested
+                          </Badge>
+                        </div>
+                      )}
                       {project.has3DModel && (
                         <div className="absolute top-3 right-3 bg-primary/80 text-primary-foreground text-xs px-2 py-1 rounded">
                           3D
@@ -421,9 +452,16 @@ export default function ProjectsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <Link to={`/projects/${project.id}`}>
-                            <h3 className="font-display font-semibold text-lg hover:text-accent transition-colors">
-                              {project.title}
-                            </h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-display font-semibold text-lg hover:text-accent transition-colors">
+                                {project.title}
+                              </h3>
+                              {user?.role === 'INVESTOR' && investedProjectIds.has(project.id) && (
+                                <Badge variant="outline" className="bg-success text-success-foreground border-success/60 shadow-soft-sm">
+                                  Invested
+                                </Badge>
+                              )}
+                            </div>
                           </Link>
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                             {project.shortDescription}

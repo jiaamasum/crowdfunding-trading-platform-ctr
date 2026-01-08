@@ -9,7 +9,9 @@ from django.db.models import Q, F, FloatField, ExpressionWrapper, Case, When
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
-from .models import Project, Favorite, Compare, ProjectEditRequest
+from .models import Project, Favorite, Compare, ProjectEditRequest, ProjectArchiveRequest
+from investments.models import Investment
+from investments.utils import apply_investment_action
 from config.permissions import IsAdminRole
 from audit.models import AuditLog, ProjectLedgerEntry
 from notifications.models import Notification
@@ -17,11 +19,68 @@ from django.contrib.auth import get_user_model
 from .serializers import (
     ProjectListSerializer, ProjectDetailSerializer, 
     ProjectCreateSerializer, FavoriteSerializer, FavoriteCreateSerializer,
-    CompareSerializer, CompareCreateSerializer, ProjectEditRequestSerializer
+    CompareSerializer, CompareCreateSerializer, ProjectEditRequestSerializer, ProjectArchiveRequestSerializer
 )
 
 def to_json_safe(data):
     return json.loads(json.dumps(data, cls=DjangoJSONEncoder))
+
+def is_admin_user(user):
+    return (
+        getattr(user, 'role', None) == 'ADMIN'
+        or getattr(user, 'is_staff', False)
+        or getattr(user, 'is_superuser', False)
+    )
+
+def archive_project_with_withdrawals(project, actor, note=None):
+    if project.status == Project.Status.ARCHIVED:
+        return project
+
+    project.status = Project.Status.ARCHIVED
+    project.save(update_fields=['status'])
+
+    unresolved_statuses = [
+        Investment.Status.CANCELLED,
+        Investment.Status.REFUNDED,
+        Investment.Status.WITHDRAWN,
+        Investment.Status.REVERSED,
+        Investment.Status.REJECTED,
+        Investment.Status.EXPIRED,
+    ]
+    investments = Investment.objects.filter(project=project).exclude(status__in=unresolved_statuses)
+    for investment in investments:
+        apply_investment_action(
+            investment,
+            'withdraw',
+            actor=actor,
+            admin_note=note or 'Project archived',
+        )
+
+    AuditLog.objects.create(
+        action_type=AuditLog.ActionType.PROJECT_ARCHIVED,
+        actor=actor,
+        target_type=AuditLog.TargetType.PROJECT,
+        target_id=str(project.id),
+        metadata=to_json_safe({
+            'project_id': str(project.id),
+            'project_name': project.title,
+            'status': project.status,
+            'note': note,
+        }),
+    )
+    ProjectLedgerEntry.objects.create(
+        project=project,
+        entry_type=ProjectLedgerEntry.EntryType.PROJECT_ARCHIVED,
+        actor=actor,
+        metadata=to_json_safe({
+            'project_id': str(project.id),
+            'project_name': project.title,
+            'status': project.status,
+            'note': note,
+        }),
+    )
+
+    return project
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -378,43 +437,58 @@ class ProjectArchiveView(APIView):
             return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
         user = request.user
-        is_admin = (
-            getattr(user, 'role', None) == 'ADMIN'
-            or getattr(user, 'is_staff', False)
-            or getattr(user, 'is_superuser', False)
-        )
+        is_admin = is_admin_user(user)
         if project.developer != user and not is_admin:
             return Response({'error': 'Not authorized to archive this project'}, status=status.HTTP_403_FORBIDDEN)
 
         if project.status == Project.Status.ARCHIVED:
             return Response({'error': 'Project is already archived'}, status=status.HTTP_400_BAD_REQUEST)
 
-        project.status = Project.Status.ARCHIVED
-        project.save(update_fields=['status'])
+        if not is_admin:
+            if ProjectArchiveRequest.objects.filter(project=project, status=ProjectArchiveRequest.Status.PENDING).exists():
+                return Response({'error': 'Archive request already pending'}, status=status.HTTP_400_BAD_REQUEST)
 
-        AuditLog.objects.create(
-            action_type=AuditLog.ActionType.PROJECT_ARCHIVED,
-            actor=request.user,
-            target_type=AuditLog.TargetType.PROJECT,
-            target_id=str(project.id),
-            metadata=to_json_safe({
-                'project_id': str(project.id),
-                'project_name': project.title,
-                'status': project.status,
-            }),
-        )
-        ProjectLedgerEntry.objects.create(
-            project=project,
-            entry_type=ProjectLedgerEntry.EntryType.PROJECT_ARCHIVED,
-            actor=request.user,
-            metadata=to_json_safe({
-                'project_id': str(project.id),
-                'project_name': project.title,
-                'status': project.status,
-            }),
-        )
+            archive_request = ProjectArchiveRequest.objects.create(
+                project=project,
+                requested_by=request.user,
+            )
 
-        return Response(ProjectDetailSerializer(project, context={'request': request}).data)
+            User = get_user_model()
+            admins = User.objects.filter(role='ADMIN') | User.objects.filter(is_staff=True) | User.objects.filter(is_superuser=True)
+            for admin in admins.distinct():
+                Notification.objects.create(
+                    user=admin,
+                    type=Notification.Type.PROJECT_ARCHIVE_REQUESTED,
+                    title='Project archive request',
+                    message=f"{project.title} has a pending archive request.",
+                    related_id=str(archive_request.id),
+                    related_type=Notification.RelatedType.PROJECT_ARCHIVE_REQUEST,
+                )
+
+            AuditLog.objects.create(
+                action_type=AuditLog.ActionType.PROJECT_ARCHIVE_REQUESTED,
+                actor=request.user,
+                target_type=AuditLog.TargetType.PROJECT,
+                target_id=str(project.id),
+                metadata=to_json_safe({
+                    'project_id': str(project.id),
+                    'project_name': project.title,
+                    'archive_request_id': str(archive_request.id),
+                }),
+            )
+            ProjectLedgerEntry.objects.create(
+                project=project,
+                entry_type=ProjectLedgerEntry.EntryType.PROJECT_ARCHIVE_REQUESTED,
+                actor=request.user,
+                metadata=to_json_safe({
+                    'archive_request_id': str(archive_request.id),
+                }),
+            )
+
+            return Response(ProjectArchiveRequestSerializer(archive_request).data, status=status.HTTP_202_ACCEPTED)
+
+        archived = archive_project_with_withdrawals(project, actor=user)
+        return Response(ProjectDetailSerializer(archived, context={'request': request}).data)
 
 
 class DeveloperProjectsView(generics.ListAPIView):
@@ -672,6 +746,149 @@ class ProjectEditRequestReviewView(APIView):
         )
 
         return Response(ProjectEditRequestSerializer(edit_request).data)
+
+
+class ProjectArchiveRequestListCreateView(generics.ListCreateAPIView):
+    """List or create project archive requests."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ProjectArchiveRequestSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_admin_user(user):
+            status_filter = self.request.query_params.get('status')
+            queryset = ProjectArchiveRequest.objects.all()
+            if status_filter:
+                queryset = queryset.filter(status=status_filter)
+            return queryset
+        return ProjectArchiveRequest.objects.filter(requested_by=user)
+
+    def create(self, request, *args, **kwargs):
+        project_id = request.data.get('project')
+        if not project_id:
+            return Response({'error': 'Project is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(pk=project_id, developer=request.user)
+        except Project.DoesNotExist:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if project.status == Project.Status.ARCHIVED:
+            return Response({'error': 'Project is already archived'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if ProjectArchiveRequest.objects.filter(project=project, status=ProjectArchiveRequest.Status.PENDING).exists():
+            return Response({'error': 'Archive request already pending'}, status=status.HTTP_400_BAD_REQUEST)
+
+        archive_request = ProjectArchiveRequest.objects.create(
+            project=project,
+            requested_by=request.user,
+        )
+
+        User = get_user_model()
+        admins = User.objects.filter(role='ADMIN') | User.objects.filter(is_staff=True) | User.objects.filter(is_superuser=True)
+        for admin in admins.distinct():
+            Notification.objects.create(
+                user=admin,
+                type=Notification.Type.PROJECT_ARCHIVE_REQUESTED,
+                title='Project archive request',
+                message=f"{project.title} has a pending archive request.",
+                related_id=str(archive_request.id),
+                related_type=Notification.RelatedType.PROJECT_ARCHIVE_REQUEST,
+            )
+
+        AuditLog.objects.create(
+            action_type=AuditLog.ActionType.PROJECT_ARCHIVE_REQUESTED,
+            actor=request.user,
+            target_type=AuditLog.TargetType.PROJECT,
+            target_id=str(project.id),
+            metadata=to_json_safe({
+                'project_id': str(project.id),
+                'project_name': project.title,
+                'archive_request_id': str(archive_request.id),
+            }),
+        )
+        ProjectLedgerEntry.objects.create(
+            project=project,
+            entry_type=ProjectLedgerEntry.EntryType.PROJECT_ARCHIVE_REQUESTED,
+            actor=request.user,
+            metadata=to_json_safe({
+                'archive_request_id': str(archive_request.id),
+            }),
+        )
+
+        return Response(ProjectArchiveRequestSerializer(archive_request).data, status=status.HTTP_201_CREATED)
+
+
+class ProjectArchiveRequestReviewView(APIView):
+    """Admin approve or reject project archive requests."""
+    permission_classes = [IsAdminRole]
+
+    def post(self, request, archive_request_id):
+        try:
+            archive_request = ProjectArchiveRequest.objects.get(pk=archive_request_id)
+        except ProjectArchiveRequest.DoesNotExist:
+            return Response({'error': 'Archive request not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if archive_request.status != ProjectArchiveRequest.Status.PENDING:
+            return Response({'error': 'Archive request already reviewed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        action = request.data.get('action')
+        review_note = request.data.get('review_note')
+        if action not in ['approve', 'reject']:
+            return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        archive_request.reviewed_at = timezone.now()
+        archive_request.reviewed_by = request.user
+        archive_request.review_note = review_note
+
+        if action == 'approve':
+            archive_project_with_withdrawals(archive_request.project, actor=request.user, note=review_note)
+            archive_request.status = ProjectArchiveRequest.Status.APPROVED
+            notification_type = Notification.Type.PROJECT_ARCHIVE_APPROVED
+            audit_action = AuditLog.ActionType.PROJECT_ARCHIVE_APPROVED
+            ledger_type = ProjectLedgerEntry.EntryType.PROJECT_ARCHIVE_APPROVED
+        else:
+            archive_request.status = ProjectArchiveRequest.Status.REJECTED
+            notification_type = Notification.Type.PROJECT_ARCHIVE_REJECTED
+            audit_action = AuditLog.ActionType.PROJECT_ARCHIVE_REJECTED
+            ledger_type = ProjectLedgerEntry.EntryType.PROJECT_ARCHIVE_REJECTED
+
+        archive_request.save()
+
+        Notification.objects.create(
+            user=archive_request.requested_by,
+            type=notification_type,
+            title=f"Project archive {archive_request.status.lower()}",
+            message=f"Your archive request for {archive_request.project.title} was {archive_request.status.lower()}.",
+            related_id=str(archive_request.project.id),
+            related_type=Notification.RelatedType.PROJECT,
+        )
+
+        AuditLog.objects.create(
+            action_type=audit_action,
+            actor=request.user,
+            target_type=AuditLog.TargetType.PROJECT,
+            target_id=str(archive_request.project.id),
+            metadata=to_json_safe({
+                'project_id': str(archive_request.project.id),
+                'project_name': archive_request.project.title,
+                'archive_request_id': str(archive_request.id),
+                'status': archive_request.status,
+                'review_note': review_note,
+            }),
+        )
+        ProjectLedgerEntry.objects.create(
+            project=archive_request.project,
+            entry_type=ledger_type,
+            actor=request.user,
+            metadata=to_json_safe({
+                'archive_request_id': str(archive_request.id),
+                'status': archive_request.status,
+                'review_note': review_note,
+            }),
+        )
+
+        return Response(ProjectArchiveRequestSerializer(archive_request).data)
 
 
 class ProjectComparatorView(APIView):

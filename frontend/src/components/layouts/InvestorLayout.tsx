@@ -16,7 +16,7 @@ import {
 import DashboardHeader from '@/components/common/DashboardHeader';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/app/investor', exact: true },
+  { icon: LayoutDashboard, label: 'Investor Dashboard', path: '/app/investor', exact: true },
   { icon: FolderOpen, label: 'Browse Projects', path: '/app/investor/projects' },
   { icon: Heart, label: 'Favorites', path: '/app/investor/favorites' },
   { icon: GitCompare, label: 'Compare', path: '/app/investor/compare' },

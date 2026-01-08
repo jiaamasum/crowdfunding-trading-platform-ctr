@@ -25,6 +25,10 @@ urlpatterns = [
     path('edit-requests/<int:pk>/', views.ProjectEditRequestDetailView.as_view(), name='project-edit-request-detail'),
     path('edit-requests/<int:edit_request_id>/review/', views.ProjectEditRequestReviewView.as_view(), name='project-edit-review'),
 
+    # Project archive requests
+    path('archive-requests/', views.ProjectArchiveRequestListCreateView.as_view(), name='project-archive-requests'),
+    path('archive-requests/<int:archive_request_id>/review/', views.ProjectArchiveRequestReviewView.as_view(), name='project-archive-review'),
+
     # Comparator
     path('comparator/', views.ProjectComparatorView.as_view(), name='project-comparator'),
 ]

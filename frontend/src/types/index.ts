@@ -42,6 +42,9 @@ export type NotificationType =
   | 'PROJECT_EDIT_REQUESTED'
   | 'PROJECT_EDIT_APPROVED'
   | 'PROJECT_EDIT_REJECTED'
+  | 'PROJECT_ARCHIVE_REQUESTED'
+  | 'PROJECT_ARCHIVE_APPROVED'
+  | 'PROJECT_ARCHIVE_REJECTED'
   | 'ACCESS_REQUESTED'
   | 'ACCESS_APPROVED'
   | 'ACCESS_REJECTED'
@@ -186,6 +189,7 @@ export interface Investment {
   approvalExpiresAt?: string;
   createdAt: string;
   completedAt?: string;
+  withdrawnAt?: string;
   isActive?: boolean;
   activityStatus?: 'ACTIVE' | 'INACTIVE';
 }
@@ -213,7 +217,7 @@ export interface Notification {
   message: string;
   isRead: boolean;
   relatedId?: string;
-  relatedType?: 'project' | 'access_request' | 'investment' | 'payment' | 'project_edit_request' | 'user';
+  relatedType?: 'project' | 'access_request' | 'investment' | 'payment' | 'project_edit_request' | 'project_archive_request' | 'user';
   createdAt: string;
 }
 
@@ -241,6 +245,9 @@ export type AuditActionType =
   | 'PROJECT_EDIT_REQUESTED'
   | 'PROJECT_EDIT_APPROVED'
   | 'PROJECT_EDIT_REJECTED'
+  | 'PROJECT_ARCHIVE_REQUESTED'
+  | 'PROJECT_ARCHIVE_APPROVED'
+  | 'PROJECT_ARCHIVE_REJECTED'
   | 'ACCESS_REQUEST_CREATED'
   | 'ACCESS_REQUEST_APPROVED'
   | 'ACCESS_REQUEST_REJECTED'
@@ -299,6 +306,19 @@ export interface ProjectEditRequest {
   requestedBy: string;
   requestedByName: string;
   changes: Record<string, unknown>;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reviewNote?: string;
+  createdAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface ProjectArchiveRequest {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  requestedBy: string;
+  requestedByName: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   reviewNote?: string;
   createdAt: string;

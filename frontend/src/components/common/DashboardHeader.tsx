@@ -26,6 +26,12 @@ const roleDashPaths: Record<string, string> = {
   INVESTOR: '/app/investor',
 };
 
+const roleDashLabels: Record<string, string> = {
+  ADMIN: 'Admin Dashboard',
+  DEVELOPER: 'Developer Dashboard',
+  INVESTOR: 'Investor Dashboard',
+};
+
 export default function DashboardHeader({
   onMenuClick,
   unreadCount = 0,
@@ -41,6 +47,10 @@ export default function DashboardHeader({
   const navigate = useNavigate();
 
   const dashboardPath = useMemo(() => roleDashPaths[user?.role || 'INVESTOR'] || '/app', [user?.role]);
+  const dashboardLabel = useMemo(
+    () => roleDashLabels[user?.role || 'INVESTOR'] || 'Dashboard',
+    [user?.role]
+  );
 
   const profilePath = `${dashboardPath}/profile`;
 
@@ -166,7 +176,7 @@ export default function DashboardHeader({
                 onMouseLeave={handleMenuLeave}
               >
                 <DropdownMenuItem onClick={() => navigate(dashboardPath)}>
-                  Dashboard
+                  {dashboardLabel}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate(profilePath)}>
                   Profile

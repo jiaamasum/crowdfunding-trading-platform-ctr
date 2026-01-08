@@ -46,6 +46,7 @@ class Investment(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    withdrawn_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'investments'

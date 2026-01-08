@@ -8,10 +8,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PageContainer } from '@/components/ui/page-container';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/hooks/use-toast';
-import apiClient, { getSupabaseAccessToken } from '@/lib/apiClient';
+import apiClient from '@/lib/apiClient';
 import { normalizeMediaUrl } from '@/lib/media';
 import { MediaImage } from '@/components/common/MediaImage';
 import { mediaApi } from '@/lib/mediaApi';
+import { getFrontendUrl } from '@/lib/env';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
@@ -19,8 +20,7 @@ export default function ProfilePage() {
   const [name, setName] = useState(user?.name || '');
   const [isSaving, setIsSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   if (!user) {
     return (
@@ -46,11 +46,9 @@ export default function ProfilePage() {
     setIsSaving(true);
     try {
       const avatarUrl = await uploadAvatar();
-      const supabaseAccessToken = getSupabaseAccessToken();
       const response = await apiClient.patch('/auth/me/', {
         name,
         avatar_url: avatarUrl,
-        supabase_access_token: supabaseAccessToken || undefined,
       });
       updateUser({
         name: response.data.name,
@@ -69,30 +67,26 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePasswordUpdate = async () => {
-    if (!password || password !== passwordConfirm) {
-      toast({ title: 'Passwords do not match', variant: 'destructive' });
-      return;
-    }
+  const handlePasswordReset = async () => {
     try {
-      const accessToken = getSupabaseAccessToken();
-      if (!accessToken) {
-        toast({ title: 'Please re-authenticate to update password', variant: 'destructive' });
+      if (!user?.email) {
+        toast({ title: 'Email missing', variant: 'destructive' });
         return;
       }
-      await apiClient.post('/auth/password-update/', {
-        access_token: accessToken,
-        password,
+      setIsResettingPassword(true);
+      await apiClient.post('/auth/password-reset/', {
+        email: user.email,
+        redirect_to: `${getFrontendUrl()}/auth/reset-password`,
       });
-      toast({ title: 'Password updated' });
-      setPassword('');
-      setPasswordConfirm('');
+      toast({ title: 'Password reset email sent' });
     } catch (error: any) {
       toast({
-        title: 'Password update failed',
+        title: 'Password reset failed',
         description: error?.message || 'Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -150,29 +144,12 @@ export default function ProfilePage() {
             <CardTitle>Password</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="passwordConfirm">Confirm Password</Label>
-                <Input
-                  id="passwordConfirm"
-                  type="password"
-                  value={passwordConfirm}
-                  onChange={(event) => setPasswordConfirm(event.target.value)}
-                />
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Request a password reset email to update your credentials.
+            </p>
             <Separator />
-            <Button variant="outline" onClick={handlePasswordUpdate}>
-              Update Password
+            <Button variant="outline" onClick={handlePasswordReset} disabled={isResettingPassword}>
+              {isResettingPassword ? 'Sending...' : 'Send Password Reset Email'}
             </Button>
           </CardContent>
         </Card>

@@ -16,12 +16,14 @@ import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Save, Loader2, CalendarIcon, Clock } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, CalendarIcon, Clock, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { projectsApi } from '@/lib/projectsApi';
 import type { Project } from '@/types';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { mediaApi } from '@/lib/mediaApi';
+import { MediaImage } from '@/components/common/MediaImage';
 
 const projectSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -43,11 +45,23 @@ const projectSchema = z.object({
 
 type ProjectFormData = z.infer<typeof projectSchema>;
 
+type MediaFile = {
+  file: File;
+  preview: string;
+};
+
+const MAX_IMAGES = 3;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg'];
+
 export default function EditProjectPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<MediaFile[]>([]);
+  const [mediaDirty, setMediaDirty] = useState(false);
 
   const getDefaultValues = (data?: Project | null) => ({
     title: data?.title || '',
@@ -78,6 +92,9 @@ export default function EditProjectPage() {
       const data = await projectsApi.getById(id);
       setProject(data);
       form.reset(getDefaultValues(data));
+      setExistingImages(data?.images || []);
+      setNewImages([]);
+      setMediaDirty(false);
     };
 
     loadProject();
@@ -86,9 +103,84 @@ export default function EditProjectPage() {
   const hasRestrictedFields = form.watch('hasRestrictedFields');
   const has3DModel = form.watch('has3DModel');
 
+  const validateImageFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `File size must be less than 5MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`;
+    }
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      return 'Only PNG and JPEG images are allowed';
+    }
+    return null;
+  };
+
+  const handleAddImages = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+
+    const remaining = MAX_IMAGES - existingImages.length - newImages.length;
+    if (remaining <= 0) {
+      toast.error(`Maximum ${MAX_IMAGES} images allowed`);
+      return;
+    }
+
+    const accepted: MediaFile[] = [];
+    for (const file of files.slice(0, remaining)) {
+      const error = validateImageFile(file);
+      if (error) {
+        toast.error(error);
+        continue;
+      }
+      accepted.push({ file, preview: URL.createObjectURL(file) });
+    }
+
+    if (accepted.length > 0) {
+      setNewImages((prev) => [...prev, ...accepted]);
+      setMediaDirty(true);
+    }
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+    setMediaDirty(true);
+  };
+
+  const removeNewImage = (index: number) => {
+    setNewImages((prev) => {
+      const next = [...prev];
+      const [removed] = next.splice(index, 1);
+      if (removed?.preview) {
+        URL.revokeObjectURL(removed.preview);
+      }
+      return next;
+    });
+    setMediaDirty(true);
+  };
+
+
   const onSubmit = async (data: ProjectFormData) => {
     setIsSubmitting(true);
     try {
+      let mediaPayload: { images?: string[]; thumbnail_url?: string | null } = {};
+      if (mediaDirty) {
+        const uploadedImages: string[] = [];
+        for (const item of newImages) {
+          const response = await mediaApi.upload({
+            file: item.file,
+            bucket: 'project-media',
+            folder: 'images',
+            projectId: id,
+          });
+          uploadedImages.push(response.resolve_url || response.public_url || response.storage_path);
+        }
+
+        const combinedImages = [...existingImages, ...uploadedImages];
+        mediaPayload = {
+          images: combinedImages,
+          thumbnail_url: combinedImages[0] || null,
+        };
+      }
+
       const payload = {
         title: data.title,
         description: data.description,
@@ -104,6 +196,7 @@ export default function EditProjectPage() {
         risk_assessment: data.riskAssessment || null,
         has_3d_model: data.has3DModel,
         is_3d_public: data.is3DPublic,
+        ...mediaPayload,
       };
 
       if (project?.status === 'APPROVED') {
@@ -113,6 +206,8 @@ export default function EditProjectPage() {
         await apiClient.patch(`/projects/${id}/`, payload);
         toast.success('Project saved successfully');
       }
+      setNewImages([]);
+      setMediaDirty(false);
       setIsSubmitting(false);
       navigate(`/app/developer/projects/${id}`);
     } catch (error) {
@@ -237,6 +332,74 @@ export default function EditProjectPage() {
                     </FormItem>
                   )}
                 />
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Media */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Media</CardTitle>
+                <CardDescription>Manage up to {MAX_IMAGES} project images</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {existingImages.length === 0 && newImages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-10 text-muted-foreground">
+                    <ImageIcon className="h-8 w-8 mb-2" />
+                    <p className="text-sm">No images uploaded yet</p>
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {existingImages.map((img, index) => (
+                      <div key={`existing-${index}`} className="relative group rounded-lg overflow-hidden border bg-muted/20">
+                        <MediaImage src={img} alt={`Project image ${index + 1}`} className="h-32 w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-2 right-2 rounded-full bg-background/90 p-1 text-muted-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {newImages.map((img, index) => (
+                      <div key={`new-${index}`} className="relative group rounded-lg overflow-hidden border bg-muted/20">
+                        <img src={img.preview} alt={`New upload ${index + 1}`} className="h-32 w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute top-2 right-2 rounded-full bg-background/90 p-1 text-muted-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    id="project-media-upload"
+                    type="file"
+                    accept={ALLOWED_IMAGE_TYPES.join(',')}
+                    multiple
+                    className="hidden"
+                    onChange={handleAddImages}
+                  />
+                  <Label
+                    htmlFor="project-media-upload"
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-muted cursor-pointer",
+                      existingImages.length + newImages.length >= MAX_IMAGES && "pointer-events-none opacity-50"
+                    )}
+                  >
+                    <Upload className="h-4 w-4" /> Add Images
+                  </Label>
+                  <p className="text-xs text-muted-foreground">PNG or JPEG, up to 5MB each.</p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

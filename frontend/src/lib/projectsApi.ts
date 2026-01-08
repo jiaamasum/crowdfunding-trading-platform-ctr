@@ -1,6 +1,6 @@
 import apiClient from '@/lib/apiClient';
 import { normalizeMediaList, normalizeMediaUrl } from '@/lib/media';
-import type { PaginatedResponse, Project, ProjectFilters, ProjectSortOption } from '@/types';
+import type { PaginatedResponse, Project, ProjectFilters, ProjectSortOption, ProjectArchiveRequest } from '@/types';
 
 const computeDaysRemaining = (endDate?: string | null, durationDays?: number, startDate?: string | null) => {
   if (endDate) {
@@ -61,6 +61,19 @@ const mapProject = (item: any): Project => ({
   reviewNote: item.review_note || undefined,
 });
 
+const mapArchiveRequest = (item: any): ProjectArchiveRequest => ({
+  id: String(item.id),
+  projectId: String(item.project),
+  projectTitle: item.project_title || '',
+  requestedBy: String(item.requested_by || ''),
+  requestedByName: item.requested_by_name || '',
+  status: item.status,
+  reviewNote: item.review_note || undefined,
+  createdAt: item.created_at || new Date().toISOString(),
+  reviewedAt: item.reviewed_at || undefined,
+  reviewedBy: item.reviewed_by ? String(item.reviewed_by) : undefined,
+});
+
 const sortProjects = (projects: Project[], sort?: ProjectSortOption) => {
   switch (sort) {
     case 'newest':
@@ -118,9 +131,12 @@ export const projectsApi = {
     return mapProject(response.data);
   },
 
-  async archive(id: string): Promise<Project> {
+  async archive(id: string): Promise<{ project?: Project; archiveRequest?: ProjectArchiveRequest }> {
     const response = await apiClient.post(`/projects/${id}/archive/`);
-    return mapProject(response.data);
+    if (response.data?.project_title) {
+      return { archiveRequest: mapArchiveRequest(response.data) };
+    }
+    return { project: mapProject(response.data) };
   },
   async list(
     filters?: ProjectFilters,
@@ -229,6 +245,22 @@ export const projectsApi = {
     });
     const results = Array.isArray(response.data.results) ? response.data.results : response.data;
     return results;
+  },
+
+  async listArchiveRequests(status?: string): Promise<ProjectArchiveRequest[]> {
+    const response = await apiClient.get('/projects/archive-requests/', {
+      params: status ? { status } : undefined,
+    });
+    const results = Array.isArray(response.data.results) ? response.data.results : response.data;
+    return results.map(mapArchiveRequest);
+  },
+
+  async reviewArchiveRequest(id: string, action: 'approve' | 'reject', reviewNote?: string): Promise<ProjectArchiveRequest> {
+    const response = await apiClient.post(`/projects/archive-requests/${id}/review/`, {
+      action,
+      review_note: reviewNote,
+    });
+    return mapArchiveRequest(response.data);
   },
 
   async getEditRequest(id: string): Promise<any> {

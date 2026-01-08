@@ -51,8 +51,8 @@ def apply_investment_action(investment, action, actor=None, admin_note=None):
 
     investment.status = status_map[action]
     investment.admin_note = admin_note or investment.admin_note
-    investment.completed_at = investment.completed_at or now
-    investment.save(update_fields=['status', 'admin_note', 'completed_at'])
+    investment.withdrawn_at = now
+    investment.save(update_fields=['status', 'admin_note', 'withdrawn_at'])
 
     credit_wallet(
         investment.investor,

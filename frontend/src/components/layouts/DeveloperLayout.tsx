@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import DashboardHeader from '@/components/common/DashboardHeader';
 
 const navItems = [
-  { path: '/app/developer', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+  { path: '/app/developer', icon: LayoutDashboard, label: 'Developer Dashboard', exact: true },
   { path: '/app/developer/projects', icon: FolderKanban, label: 'My Projects' },
   { path: '/app/developer/projects/archived', icon: Archive, label: 'Archived Projects' },
   { path: '/app/developer/projects/new', icon: Plus, label: 'Create Project' },

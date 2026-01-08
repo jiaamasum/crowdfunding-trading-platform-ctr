@@ -157,10 +157,6 @@ class RegisterView(generics.CreateAPIView):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 },
-                'supabase': {
-                    'access_token': access_token,
-                    'refresh_token': refresh_token,
-                },
                 'requires_verification': False,
             }, status=status.HTTP_201_CREATED)
 
@@ -202,10 +198,6 @@ class SupabaseLoginView(APIView):
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-            },
-            'supabase': {
-                'access_token': response.get('access_token'),
-                'refresh_token': response.get('refresh_token'),
             },
         }, status=status.HTTP_200_OK)
 
@@ -252,10 +244,6 @@ class SupabaseExchangeView(APIView):
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-            },
-            'supabase': {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
             },
         }, status=status.HTTP_200_OK)
 

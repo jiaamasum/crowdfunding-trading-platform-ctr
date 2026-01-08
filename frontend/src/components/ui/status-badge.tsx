@@ -10,7 +10,7 @@ const statusBadgeVariants = cva(
         default: "bg-muted text-muted-foreground",
         draft: "bg-muted text-muted-foreground",
         pending: "bg-warning/10 text-warning border border-warning/20",
-        approved: "bg-success/10 text-success border border-success/20",
+        approved: "bg-info text-info-foreground border border-info/60 shadow-soft-sm",
         rejected: "bg-destructive/10 text-destructive border border-destructive/20",
         changes: "bg-info/10 text-info border border-info/20",
         archived: "bg-muted text-muted-foreground border border-muted-foreground/20",

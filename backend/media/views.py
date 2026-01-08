@@ -6,9 +6,12 @@ import requests
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from rest_framework import permissions, status
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 
+from .serializers import MediaUploadRequestSerializer, MediaUploadResponseSerializer
 ALLOWED_BUCKETS = {
     settings.SUPABASE_STORAGE_BUCKET_MEDIA,
     settings.SUPABASE_STORAGE_BUCKET_3D,
@@ -85,7 +88,16 @@ def _signed_url(bucket: str, path: str, expires_in: int = 3600) -> str | None:
 
 class MediaUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
+    @extend_schema(
+        request=MediaUploadRequestSerializer,
+        responses={
+            200: MediaUploadResponseSerializer,
+            400: OpenApiResponse(description='Invalid upload request'),
+            502: OpenApiResponse(description='Storage provider error'),
+        },
+    )
     def post(self, request):
         bucket = request.data.get('bucket') or ''
         bucket = _resolve_bucket(bucket)
@@ -144,6 +156,17 @@ class MediaUploadView(APIView):
 class MediaSignedUrlView(APIView):
     permission_classes = [permissions.AllowAny]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='bucket', type=str, location=OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(name='path', type=str, location=OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(name='expires_in', type=int, location=OpenApiParameter.QUERY, required=False),
+        ],
+        responses={
+            200: OpenApiResponse(description='Signed URL returned'),
+            400: OpenApiResponse(description='Invalid request'),
+        },
+    )
     def get(self, request):
         bucket = request.query_params.get('bucket') or ''
         path = request.query_params.get('path') or ''
@@ -169,6 +192,17 @@ class MediaSignedUrlView(APIView):
 class MediaResolveView(APIView):
     permission_classes = [permissions.AllowAny]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='bucket', type=str, location=OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(name='path', type=str, location=OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(name='expires_in', type=int, location=OpenApiParameter.QUERY, required=False),
+        ],
+        responses={
+            302: OpenApiResponse(description='Redirect to media URL'),
+            400: OpenApiResponse(description='Invalid request'),
+        },
+    )
     def get(self, request):
         bucket = request.query_params.get('bucket') or ''
         path = request.query_params.get('path') or ''

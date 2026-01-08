@@ -22,6 +22,7 @@ const mapInvestment = (item: any): Investment => {
     approvalExpiresAt: item.approval_expires_at || undefined,
     createdAt: item.created_at || new Date().toISOString(),
     completedAt: item.completed_at || undefined,
+    withdrawnAt: item.withdrawn_at || undefined,
     isActive,
     activityStatus: item.activity_status || (isActive ? 'ACTIVE' : 'INACTIVE'),
   };
