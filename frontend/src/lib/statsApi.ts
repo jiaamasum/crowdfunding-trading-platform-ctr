@@ -6,6 +6,13 @@ const mapInvestorStats = (data: any): InvestorStats => ({
   totalInvestedAmount: Number(data.total_invested_amount || 0),
   totalSharesOwned: Number(data.total_shares_owned || 0),
   portfolioValue: Number(data.portfolio_value || 0),
+  activeInvestedProjects: Number(data.active_invested_projects || 0),
+  activeInvestedAmount: Number(data.active_invested_amount || 0),
+  activeSharesOwned: Number(data.active_shares_owned || 0),
+  withdrawnInvestedAmount: Number(data.withdrawn_invested_amount || 0),
+  withdrawnSharesOwned: Number(data.withdrawn_shares_owned || 0),
+  activeInvestments: Number(data.active_investments || 0),
+  withdrawnInvestments: Number(data.withdrawn_investments || 0),
 });
 
 const mapDeveloperStats = (data: any): DeveloperStats => ({
@@ -24,6 +31,14 @@ const mapAdminStats = (data: any): AdminStats => ({
   totalUsers: Number(data.total_users || 0),
   totalInvestments: Number(data.total_investments || 0),
   totalPayments: Number(data.total_payments || 0),
+  totalInvestedAmount: Number(data.total_invested_amount || 0),
+  activeInvestedAmount: Number(data.active_invested_amount || 0),
+  withdrawnInvestedAmount: Number(data.withdrawn_invested_amount || 0),
+  activeInvestments: Number(data.active_investments || 0),
+  withdrawnInvestments: Number(data.withdrawn_investments || 0),
+  totalShares: Number(data.total_shares || 0),
+  activeShares: Number(data.active_shares || 0),
+  withdrawnShares: Number(data.withdrawn_shares || 0),
 });
 
 export const statsApi = {

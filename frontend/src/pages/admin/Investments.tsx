@@ -16,6 +16,7 @@ import type { Investment } from '@/types';
 export default function AdminInvestments() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [activityFilter, setActivityFilter] = useState('all');
   const [investments, setInvestments] = useState<Investment[]>([]);
 
   useEffect(() => {
@@ -36,17 +37,31 @@ export default function AdminInvestments() {
       const matchesSearch = inv.investorName.toLowerCase().includes(search.toLowerCase())
         || inv.projectTitle.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesActivity = activityFilter === 'all'
+        || (activityFilter === 'active' ? inv.isActive : !inv.isActive);
+      return matchesSearch && matchesStatus && matchesActivity;
     });
-  }, [investments, search, statusFilter]);
+  }, [investments, search, statusFilter, activityFilter]);
+
+  const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const withdrawnStatuses = new Set(['WITHDRAWN', 'REFUNDED', 'REVERSED']);
+  const investedInvestments = investments.filter((inv) => investedStatuses.has(inv.status));
+  const activeInvestments = investments.filter((inv) => inv.isActive);
+  const withdrawnInvestments = investments.filter((inv) => withdrawnStatuses.has(inv.status));
 
   const projectGroups = useMemo(() => {
     const map = new Map<string, {
       projectId: string;
       projectTitle: string;
       totalAmount: number;
+      activeAmount: number;
+      withdrawnAmount: number;
       totalShares: number;
+      activeShares: number;
+      withdrawnShares: number;
       investorCount: number;
+      activeCount: number;
+      withdrawnCount: number;
       latestDate?: string;
       latestStatus?: Investment['status'];
     }>();
@@ -55,6 +70,16 @@ export default function AdminInvestments() {
       const existing = map.get(inv.projectId);
       if (existing) {
         existing.totalAmount += inv.totalAmount;
+        if (inv.isActive) {
+          existing.activeAmount += inv.totalAmount;
+          existing.activeShares += inv.shares;
+          existing.activeCount += 1;
+        }
+        if (withdrawnStatuses.has(inv.status)) {
+          existing.withdrawnAmount += inv.totalAmount;
+          existing.withdrawnShares += inv.shares;
+          existing.withdrawnCount += 1;
+        }
         existing.totalShares += inv.shares;
         existing.investorCount += 1;
         if (!existing.latestDate || new Date(inv.createdAt) > new Date(existing.latestDate)) {
@@ -66,8 +91,14 @@ export default function AdminInvestments() {
           projectId: inv.projectId,
           projectTitle: inv.projectTitle,
           totalAmount: inv.totalAmount,
+          activeAmount: inv.isActive ? inv.totalAmount : 0,
+          withdrawnAmount: withdrawnStatuses.has(inv.status) ? inv.totalAmount : 0,
           totalShares: inv.shares,
+          activeShares: inv.isActive ? inv.shares : 0,
+          withdrawnShares: withdrawnStatuses.has(inv.status) ? inv.shares : 0,
           investorCount: 1,
+          activeCount: inv.isActive ? 1 : 0,
+          withdrawnCount: withdrawnStatuses.has(inv.status) ? 1 : 0,
           latestDate: inv.createdAt,
           latestStatus: inv.status,
         });
@@ -83,7 +114,11 @@ export default function AdminInvestments() {
       investorName: string;
       investorEmail: string;
       totalAmount: number;
+      activeAmount: number;
+      withdrawnAmount: number;
       investmentCount: number;
+      activeCount: number;
+      withdrawnCount: number;
       latestDate?: string;
       latestStatus?: Investment['status'];
     }>();
@@ -93,6 +128,14 @@ export default function AdminInvestments() {
       if (existing) {
         existing.totalAmount += inv.totalAmount;
         existing.investmentCount += 1;
+        if (inv.isActive) {
+          existing.activeAmount += inv.totalAmount;
+          existing.activeCount += 1;
+        }
+        if (withdrawnStatuses.has(inv.status)) {
+          existing.withdrawnAmount += inv.totalAmount;
+          existing.withdrawnCount += 1;
+        }
         if (!existing.latestDate || new Date(inv.createdAt) > new Date(existing.latestDate)) {
           existing.latestDate = inv.createdAt;
           existing.latestStatus = inv.status;
@@ -103,7 +146,11 @@ export default function AdminInvestments() {
           investorName: inv.investorName,
           investorEmail: inv.investorEmail,
           totalAmount: inv.totalAmount,
+          activeAmount: inv.isActive ? inv.totalAmount : 0,
+          withdrawnAmount: withdrawnStatuses.has(inv.status) ? inv.totalAmount : 0,
           investmentCount: 1,
+          activeCount: inv.isActive ? 1 : 0,
+          withdrawnCount: withdrawnStatuses.has(inv.status) ? 1 : 0,
           latestDate: inv.createdAt,
           latestStatus: inv.status,
         });
@@ -113,9 +160,12 @@ export default function AdminInvestments() {
     return Array.from(map.values());
   }, [filteredInvestments]);
 
-  const totalAmount = investments.reduce((sum, inv) => sum + inv.totalAmount, 0);
-  const totalShares = investments.reduce((sum, inv) => sum + inv.shares, 0);
-  const uniqueProjects = new Set(investments.map((inv) => inv.projectId)).size;
+  const totalAmount = investedInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalShares = investedInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const activeAmount = activeInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const withdrawnAmount = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const activeShares = activeInvestments.reduce((sum, inv) => sum + inv.shares, 0);
+  const uniqueProjects = new Set(activeInvestments.map((inv) => inv.projectId)).size;
 
   return (
     <div className="space-y-6">
@@ -124,7 +174,7 @@ export default function AdminInvestments() {
         <p className="text-muted-foreground mt-1">Monitor investments by project and by investor</p>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6 flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -133,6 +183,28 @@ export default function AdminInvestments() {
             <div>
               <Money amount={totalAmount} className="text-2xl font-bold" />
               <p className="text-sm text-muted-foreground">Total Invested</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Layers className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <Money amount={activeAmount} className="text-2xl font-bold" />
+              <p className="text-sm text-muted-foreground">Active Invested</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <Money amount={withdrawnAmount} className="text-2xl font-bold" />
+              <p className="text-sm text-muted-foreground">Withdrawn/Refunded</p>
             </div>
           </CardContent>
         </Card>
@@ -151,6 +223,17 @@ export default function AdminInvestments() {
           <CardContent className="pt-6 flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{activeShares.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Active Shares</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+              <Users className="h-5 w-5 text-accent" />
             </div>
             <div>
               <p className="text-2xl font-bold">{uniqueProjects}</p>
@@ -172,6 +255,16 @@ export default function AdminInvestments() {
                 className="pl-9"
               />
             </div>
+            <Select value={activityFilter} onValueChange={setActivityFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Filter by activity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Activity</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filter by status" />
@@ -207,8 +300,12 @@ export default function AdminInvestments() {
                 <TableRow>
                   <TableHead>Project</TableHead>
                   <TableHead>Investors</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead>Withdrawn</TableHead>
                   <TableHead>Shares</TableHead>
                   <TableHead>Total Invested</TableHead>
+                  <TableHead>Active Amount</TableHead>
+                  <TableHead>Withdrawn Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Investment</TableHead>
                   <TableHead>Actions</TableHead>
@@ -227,8 +324,12 @@ export default function AdminInvestments() {
                       <span className="font-medium">{project.projectTitle}</span>
                     </TableCell>
                     <TableCell>{project.investorCount}</TableCell>
+                    <TableCell>{project.activeCount}</TableCell>
+                    <TableCell>{project.withdrawnCount}</TableCell>
                     <TableCell>{project.totalShares.toLocaleString()}</TableCell>
                     <TableCell><Money amount={project.totalAmount} className="font-semibold" /></TableCell>
+                    <TableCell><Money amount={project.activeAmount} /></TableCell>
+                    <TableCell><Money amount={project.withdrawnAmount} /></TableCell>
                     <TableCell>
                       {project.latestStatus ? <StatusBadge status={project.latestStatus} /> : '—'}
                     </TableCell>
@@ -254,7 +355,11 @@ export default function AdminInvestments() {
                 <TableRow>
                   <TableHead>Investor</TableHead>
                   <TableHead>Investments</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead>Withdrawn</TableHead>
                   <TableHead>Total Invested</TableHead>
+                  <TableHead>Active Amount</TableHead>
+                  <TableHead>Withdrawn Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Investment</TableHead>
                   <TableHead>Actions</TableHead>
@@ -276,7 +381,11 @@ export default function AdminInvestments() {
                       </div>
                     </TableCell>
                     <TableCell>{user.investmentCount}</TableCell>
+                    <TableCell>{user.activeCount}</TableCell>
+                    <TableCell>{user.withdrawnCount}</TableCell>
                     <TableCell><Money amount={user.totalAmount} className="font-semibold" /></TableCell>
+                    <TableCell><Money amount={user.activeAmount} /></TableCell>
+                    <TableCell><Money amount={user.withdrawnAmount} /></TableCell>
                     <TableCell>
                       {user.latestStatus ? <StatusBadge status={user.latestStatus} /> : '—'}
                     </TableCell>

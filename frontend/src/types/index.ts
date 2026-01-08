@@ -186,6 +186,8 @@ export interface Investment {
   approvalExpiresAt?: string;
   createdAt: string;
   completedAt?: string;
+  isActive?: boolean;
+  activityStatus?: 'ACTIVE' | 'INACTIVE';
 }
 
 // Payment
@@ -328,6 +330,13 @@ export interface InvestorStats {
   totalInvestedAmount: number;
   totalSharesOwned: number;
   portfolioValue: number;
+  activeInvestedProjects: number;
+  activeInvestedAmount: number;
+  activeSharesOwned: number;
+  withdrawnInvestedAmount: number;
+  withdrawnSharesOwned: number;
+  activeInvestments: number;
+  withdrawnInvestments: number;
 }
 
 export interface AdminStats {
@@ -336,6 +345,14 @@ export interface AdminStats {
   totalUsers: number;
   totalInvestments: number;
   totalPayments: number;
+  totalInvestedAmount: number;
+  activeInvestedAmount: number;
+  withdrawnInvestedAmount: number;
+  activeInvestments: number;
+  withdrawnInvestments: number;
+  totalShares: number;
+  activeShares: number;
+  withdrawnShares: number;
 }
 
 // Pagination
