@@ -39,7 +39,7 @@
 ## Animated Preview
 Click the image to watch the walkthrough.
 
-[![Walkthrough](../docs/screenshots/investor_dashboard.png)](../docs/screenshots/project_overview.mov)
+[![Walkthrough](../docs/screenshots/investor_dashboard.png)](https://www.youtube.com/watch?v=W0yWAXwcvXc)
 
 ## Screenshots
 | Landing Page | Login |

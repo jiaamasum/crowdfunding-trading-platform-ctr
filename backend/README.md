@@ -41,7 +41,7 @@
 ## Animated Preview
 Click the image to watch the walkthrough.
 
-[![API walkthrough](../docs/screenshots/backend_api_swagger.png)](../docs/screenshots/project_overview.mov)
+[![API walkthrough](../docs/screenshots/backend_api_swagger.png)](https://www.youtube.com/watch?v=W0yWAXwcvXc)
 
 ## Screenshots
 | Swagger UI | Schemawise View |
