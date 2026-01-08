@@ -36,14 +36,18 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         token = auth_header.split(' ')[1]
         
         try:
-            # DEBUG LOGGING SETUP
+            # Debug logging is opt-in to avoid IO on every request.
             import datetime
+            debug_enabled = settings.DEBUG and getattr(settings, 'SUPABASE_AUTH_DEBUG', False)
+
             def log_debug(msg):
+                if not debug_enabled:
+                    return
                 try:
                     with open('backend_debug.log', 'a') as f:
                         timestamp = datetime.datetime.now().isoformat()
                         f.write(f"[{timestamp}] {msg}\n")
-                except:
+                except Exception:
                     pass
 
             log_debug(f"Received Token: {token[:10]}...{token[-10:] if len(token) > 20 else ''}")
