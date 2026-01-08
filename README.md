@@ -1,80 +1,94 @@
-# Crowdfunding Trading Platform (CFP-MVP)
 
-A role-based digital platform designed to connect **Project Developers** and **Investors** under controlled administration. The platform facilitates share-based investments in projects, allowing developers to raise funds and investors to build portfolios.
+<div align="center">
+  <img src="docs/brand/logo.png" alt="CFP Logo" width="120" style="background:#f5f5f5;padding:15px;border-radius:15px;box-shadow:0 4px 6px rgba(0,0,0,0.1);" />
 
-## 🚀 Features
+  <h1>Crowdfunding Trading Platform (CFP-MVP)</h1>
 
--   **Role-Based Access**: Specialized dashboards for Admins, Project Developers, and Investors.
--   **Share-Based Investment**: Dynamic calculation of share prices and atomic transaction handling.
--   **Project Management**: Developers can create, submit, and manage projects.
--   **Investment discovery**: Investors can compare, favorite, and browse projects.
--   **Security**: Admin-controlled approval workflows and restricted data access.
+  <p>
+    <strong>Next-Gen Investment & Project Funding Ecosystem</strong>
+  </p>
 
-## 🛠 Tech Stack
+  <p>
+    <a href="frontend/README.md"><strong>Frontend Docs</strong></a> |
+    <a href="backend/README.md"><strong>Backend Docs</strong></a> |
+    <a href="docs/screenshots/project_overview.mov"><strong>Video Demo</strong></a>
+  </p>
 
-### Backend
--   **Framework**: Django REST Framework (Python)
--   **Database**: PostgreSQL (via Supabase)
--   **Authentication**: JWT (JSON Web Tokens)
--   **Storage**: Supabase Storage
+  <p>
+    <img src="https://img.shields.io/badge/status-MVP%20Complete-success" alt="Status" />
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
+    <img src="https://img.shields.io/badge/frontend-Next.js-black" alt="Frontend" />
+    <img src="https://img.shields.io/badge/backend-Django-092e20" alt="Backend" />
+  </p>
+</div>
 
-### Frontend
--   **Framework**: Next.js (React)
--   **Styling**: Tailwind CSS
--   **Components**: shadcn/ui
--   **Icons**: Lucide React
+---
 
-## 📦 Project Structure
+## 📖 Overview
+**CFP-MVP** is a comprehensive digital platform connecting visionary **Project Developers** with potential **Investors** through a regulated, role-based environment. It enables:
+- **Developers** to raise capital by selling project shares.
+- **Investors** to browse, compare, and invest in projects to build diversified portfolios.
+- **Admins** to oversee compliance, approve projects, and manage users.
 
-The project is organized as a monorepo:
+## 🚀 Key Features
+- **✨ Role-Based Dashboards**: Tailored experiences for Investors, Developers, and Admins.
+- **📈 Share Trading Logic**: Atomic transactions and dynamic share calculation.
+- **🔐 Secure Access**: JWT authentication with RBAC and specialized permission flows.
+- **🖼️ Rich Media**: Support for 3D models, video galleries, and high-res project imagery.
+- **⚖️ Comparison Tools**: Side-by-side project analysis for informed investing.
 
--   `backend/`: Django project code.
--   `frontend/`: Next.js application code.
+## 🏗 Technology Stack
 
-## 🛠 Getting Started
+| Area | Technology |
+| --- | --- |
+| **Frontend** | Next.js (React), Tailwind CSS, shadcn/ui, Recharts, Framer Motion |
+| **Backend** | Django REST Framework, Python 3.14 |
+| **Database** | PostgreSQL (via Supabase) |
+| **Storage** | Supabase Storage (Buckets for Media, 3D, Profiles) |
+| **Auth** | JWT (SimpleJWT) + Supabase Auth Integration |
 
-### Prerequisites
--   Python 3.x
--   Node.js & npm
+## 📂 Repository Structure
+This monorepo contains:
 
-### Backend Setup
+- **[`frontend/`](frontend/README.md)**: The React-based user interface.
+- **[`backend/`](backend/README.md)**: The Django REST API server.
+- **[`docs/`](docs/)**: Project documentation assets, screenshots, and brand materials.
 
-1.  Navigate to the backend directory:
-    ```bash
-    cd backend
-    ```
-2.  Create and activate a virtual environment:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  Configure environment variables:
-    -   Copy `.env.example` to `.env` and fill in your details.
-5.  Run migrations and start the server:
-    ```bash
-    python manage.py migrate
-    python manage.py runserver
-    ```
+## 🏁 Quick Start
 
-### Frontend Setup
+### 1. Backend Setup
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+# Configure .env (see backend/README.md)
+python manage.py runserver
+```
 
-1.  Navigate to the frontend directory:
-    ```bash
-    cd frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the development server:
-    ```bash
-    npm run dev
-    ```
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+# Configure .env.local (see frontend/README.md)
+npm run dev
+```
+
+## 📸 visual Tour
+
+| **Investor Dashboard** | **Project Details** |
+|:---:|:---:|
+| <img src="docs/screenshots/investor_dashboard.png" width="400" /> | <img src="docs/screenshots/project_overview.mov" width="400" /> |
+
+| **Admin Control** | **Developer Stats** |
+|:---:|:---:|
+| <img src="docs/screenshots/admin_dashboard.png" width="400" /> | <img src="docs/screenshots/developer_dashboard.png" width="400" /> |
+
+## 🤝 Contributing
+1. Clone the repository.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes.
+4. Push to the branch and open a PR.
 
 ## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT © 2026 Masum Jia
