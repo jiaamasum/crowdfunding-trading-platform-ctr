@@ -1,17 +1,23 @@
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
+backend/venv/
+backend/db.sqlite3
 .env
+.DS_Store
 
 # Node
 node_modules/
-.next/
-out/
-build/
-.DS_Store
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Documentation
-*.md
-!README.md
+# IDE
+.vscode/
+.idea/
+backend/client_secret*.json
