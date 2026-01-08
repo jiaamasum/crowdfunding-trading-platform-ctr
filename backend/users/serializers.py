@@ -103,7 +103,6 @@ class SupabaseTokenPairSerializer(serializers.Serializer):
 class LoginResponseSerializer(serializers.Serializer):
     detail = serializers.CharField()
     tokens = TokenPairSerializer()
-    supabase = SupabaseTokenPairSerializer()
 
 
 class RegisterRequestSerializer(serializers.Serializer):
@@ -119,7 +118,6 @@ class RegisterResponseSerializer(serializers.Serializer):
     detail = serializers.CharField()
     user = UserSerializer(allow_null=True)
     tokens = TokenPairSerializer(required=False)
-    supabase = SupabaseTokenPairSerializer(required=False)
     requires_verification = serializers.BooleanField()
 
 
@@ -132,7 +130,6 @@ class SupabaseExchangeResponseSerializer(serializers.Serializer):
     detail = serializers.CharField()
     user = UserSerializer()
     tokens = TokenPairSerializer()
-    supabase = SupabaseTokenPairSerializer()
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):

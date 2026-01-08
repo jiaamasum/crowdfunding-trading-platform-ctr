@@ -336,7 +336,8 @@ export default function DeveloperProjectDetail() {
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Active</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Invested On</TableHead>
+                      <TableHead>Withdrawn On</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -352,7 +353,12 @@ export default function DeveloperProjectDetail() {
                         <TableCell><Money amount={inv.totalAmount} /></TableCell>
                         <TableCell><StatusBadge status={inv.status} /></TableCell>
                         <TableCell><StatusBadge status={inv.activityStatus || ((inv.isActive ?? inv.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
-                        <TableCell className="text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {inv.completedAt ? new Date(inv.completedAt).toLocaleDateString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {inv.withdrawnAt ? new Date(inv.withdrawnAt).toLocaleDateString() : '—'}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -364,12 +370,12 @@ export default function DeveloperProjectDetail() {
 
         <TabsContent value="media" className="mt-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Project Media</CardTitle>
               {canEdit && (
-                <Link to={`/app/developer/projects/${id}/media`}>
+                <Link to={`/app/developer/projects/${id}/edit`}>
                   <Button variant="outline" size="sm" className="gap-2">
-                    <Upload className="h-4 w-4" /> Manage Media
+                    <Upload className="h-4 w-4" /> Edit Project
                   </Button>
                 </Link>
               )}

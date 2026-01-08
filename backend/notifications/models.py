@@ -13,6 +13,9 @@ class Notification(models.Model):
         PROJECT_EDIT_REQUESTED = 'PROJECT_EDIT_REQUESTED', 'Project Edit Requested'
         PROJECT_EDIT_APPROVED = 'PROJECT_EDIT_APPROVED', 'Project Edit Approved'
         PROJECT_EDIT_REJECTED = 'PROJECT_EDIT_REJECTED', 'Project Edit Rejected'
+        PROJECT_ARCHIVE_REQUESTED = 'PROJECT_ARCHIVE_REQUESTED', 'Project Archive Requested'
+        PROJECT_ARCHIVE_APPROVED = 'PROJECT_ARCHIVE_APPROVED', 'Project Archive Approved'
+        PROJECT_ARCHIVE_REJECTED = 'PROJECT_ARCHIVE_REJECTED', 'Project Archive Rejected'
         ACCESS_REQUESTED = 'ACCESS_REQUESTED', 'Access Requested'
         ACCESS_APPROVED = 'ACCESS_APPROVED', 'Access Approved'
         ACCESS_REJECTED = 'ACCESS_REJECTED', 'Access Rejected'
@@ -37,6 +40,7 @@ class Notification(models.Model):
         INVESTMENT = 'investment', 'Investment'
         PAYMENT = 'payment', 'Payment'
         PROJECT_EDIT_REQUEST = 'project_edit_request', 'Project Edit Request'
+        PROJECT_ARCHIVE_REQUEST = 'project_archive_request', 'Project Archive Request'
         USER = 'user', 'User'
     
     user = models.ForeignKey(

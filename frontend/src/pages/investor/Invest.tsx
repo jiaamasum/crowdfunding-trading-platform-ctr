@@ -54,8 +54,13 @@ export default function InvestPage() {
           investmentsApi.list({ project: id }),
         ]);
         setProject(projectData);
-        const latest = investments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        setInvestmentRequest(latest || null);
+        const approved = investments.filter((inv) => inv.status === 'APPROVED');
+        const latestApproved = approved.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const isExpired = Boolean(
+          latestApproved?.approvalExpiresAt
+            && new Date(latestApproved.approvalExpiresAt) < new Date()
+        );
+        setInvestmentRequest(isExpired ? null : (latestApproved || null));
       } catch (error) {
         toast({
           title: 'Unable to load project',
@@ -104,7 +109,7 @@ export default function InvestPage() {
     return (
       <PageContainer>
         <div className="text-center py-12 space-y-4">
-          <p className="text-muted-foreground">No investment request found for this project.</p>
+          <p className="text-muted-foreground">No approved investment request found for this project.</p>
           <Link to={`/projects/${project.id}`}>
             <Button variant="outline">Back to Project</Button>
           </Link>

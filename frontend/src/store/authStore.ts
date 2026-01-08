@@ -7,7 +7,6 @@ import apiClient, {
   clearSupabaseTokens,
   getAccessToken,
   getRefreshToken,
-  setSupabaseTokens,
   setTokens,
 } from '@/lib/apiClient';
 import { normalizeMediaUrl } from '@/lib/media';
@@ -80,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
       initialize: async () => {
         try {
           set({ isLoading: true });
+          clearSupabaseTokens();
 
           const accessToken = getAccessToken();
           if (!accessToken) {
@@ -107,10 +107,7 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
           setTokens(tokenResponse.data.tokens.access, tokenResponse.data.tokens.refresh);
-          setSupabaseTokens(
-            tokenResponse.data.supabase?.access_token,
-            tokenResponse.data.supabase?.refresh_token
-          );
+          clearSupabaseTokens();
 
           const userResponse = await apiClient.get('/auth/me/');
           const user = transformUser(userResponse.data);
@@ -141,10 +138,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           setTokens(response.data.tokens.access, response.data.tokens.refresh);
-          setSupabaseTokens(
-            response.data.supabase?.access_token,
-            response.data.supabase?.refresh_token
-          );
+          clearSupabaseTokens();
           const user = transformUser(response.data.user);
           set({ user, isAuthenticated: true, isLoading: false });
           return { requiresVerification: false, detail: response.data.detail };
@@ -238,10 +232,7 @@ export const useAuthStore = create<AuthState>()(
             refresh_token: refreshToken,
           });
           setTokens(response.data.tokens.access, response.data.tokens.refresh);
-          setSupabaseTokens(
-            response.data.supabase?.access_token,
-            response.data.supabase?.refresh_token
-          );
+          clearSupabaseTokens();
           const user = transformUser(response.data.user);
           set({ user, isAuthenticated: true, isLoading: false });
         } catch (error) {

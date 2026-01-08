@@ -22,7 +22,7 @@ import {
 import { projectsApi } from '@/lib/projectsApi';
 import apiClient from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
-import type { Project, ProjectEditRequest } from '@/types';
+import type { Project, ProjectEditRequest, ProjectArchiveRequest } from '@/types';
 import { MediaImage } from '@/components/common/MediaImage';
 
 type DecisionType = 'approve' | 'reject' | 'needs_changes';
@@ -35,6 +35,7 @@ export default function ReviewQueue() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [editRequests, setEditRequests] = useState<ProjectEditRequest[]>([]);
+  const [archiveRequests, setArchiveRequests] = useState<ProjectArchiveRequest[]>([]);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -57,6 +58,8 @@ export default function ReviewQueue() {
           reviewedAt: item.reviewed_at || undefined,
           reviewedBy: item.reviewed_by ? String(item.reviewed_by) : undefined,
         })));
+        const archiveData = await projectsApi.listArchiveRequests();
+        setArchiveRequests(archiveData);
       } catch (error) {
         toast({
           title: 'Failed to load projects',
@@ -73,6 +76,8 @@ export default function ReviewQueue() {
   const reviewedProjects = projects.filter(p => ['APPROVED', 'REJECTED', 'NEEDS_CHANGES'].includes(p.status));
   const pendingEditRequests = editRequests.filter(req => req.status === 'PENDING');
   const reviewedEditRequests = editRequests.filter(req => req.status !== 'PENDING');
+  const pendingArchiveRequests = archiveRequests.filter(req => req.status === 'PENDING');
+  const reviewedArchiveRequests = archiveRequests.filter(req => req.status !== 'PENDING');
 
   const getPreviewImage = (project: Project) =>
     project.thumbnailUrl || project.images?.[0] || '';
@@ -111,6 +116,23 @@ export default function ReviewQueue() {
     setNote('');
   };
 
+  const handleArchiveDecision = async (request: ProjectArchiveRequest, action: 'approve' | 'reject') => {
+    try {
+      const updated = await projectsApi.reviewArchiveRequest(request.id, action);
+      setArchiveRequests((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      toast({
+        title: `Archive request ${action === 'approve' ? 'approved' : 'rejected'}`,
+        description: `${request.projectTitle} was ${action === 'approve' ? 'archived' : 'left active'}.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Archive review failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getDecisionConfig = (type: DecisionType) => {
     switch (type) {
       case 'approve':
@@ -133,10 +155,10 @@ export default function ReviewQueue() {
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending" className="gap-2">
-            <Clock className="h-4 w-4" /> Pending ({pendingProjects.length + pendingEditRequests.length})
+            <Clock className="h-4 w-4" /> Pending ({pendingProjects.length + pendingEditRequests.length + pendingArchiveRequests.length})
           </TabsTrigger>
           <TabsTrigger value="reviewed" className="gap-2">
-            <FileCheck className="h-4 w-4" /> Reviewed ({reviewedProjects.length + reviewedEditRequests.length})
+            <FileCheck className="h-4 w-4" /> Reviewed ({reviewedProjects.length + reviewedEditRequests.length + reviewedArchiveRequests.length})
           </TabsTrigger>
         </TabsList>
 
@@ -276,6 +298,61 @@ export default function ReviewQueue() {
                 </Table>
               </Card>
             )}
+
+            {pendingArchiveRequests.length === 0 ? (
+              <EmptyState
+                icon={<FileCheck className="h-12 w-12" />}
+                title="No pending archive requests"
+                description="All project archive requests have been reviewed"
+              />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pending Archive Requests</CardTitle>
+                </CardHeader>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Developer</TableHead>
+                      <TableHead>Requested</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingArchiveRequests.map((req) => (
+                      <TableRow key={req.id}>
+                        <TableCell>{req.projectTitle}</TableCell>
+                        <TableCell>{req.requestedByName}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(req.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="gap-1 bg-success hover:bg-success/90"
+                              onClick={() => handleArchiveDecision(req, 'approve')}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
+                              onClick={() => handleArchiveDecision(req, 'reject')}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -336,6 +413,34 @@ export default function ReviewQueue() {
                 </TableHeader>
                 <TableBody>
                   {reviewedEditRequests.map((req) => (
+                    <TableRow key={req.id}>
+                      <TableCell>{req.projectTitle}</TableCell>
+                      <TableCell>{req.requestedByName}</TableCell>
+                      <TableCell><StatusBadge status={req.status} /></TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {req.reviewedAt ? new Date(req.reviewedAt).toLocaleDateString() : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Reviewed Archive Requests</CardTitle>
+              </CardHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Developer</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Reviewed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reviewedArchiveRequests.map((req) => (
                     <TableRow key={req.id}>
                       <TableCell>{req.projectTitle}</TableCell>
                       <TableCell>{req.requestedByName}</TableCell>

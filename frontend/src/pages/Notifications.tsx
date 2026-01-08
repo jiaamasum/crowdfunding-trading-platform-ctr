@@ -35,6 +35,9 @@ const notificationIcons: Record<string, typeof Bell> = {
   'PROJECT_EDIT_REQUESTED': FileCheck,
   'PROJECT_EDIT_APPROVED': FileCheck,
   'PROJECT_EDIT_REJECTED': AlertCircle,
+  'PROJECT_ARCHIVE_REQUESTED': FileCheck,
+  'PROJECT_ARCHIVE_APPROVED': FileCheck,
+  'PROJECT_ARCHIVE_REJECTED': AlertCircle,
   'ACCESS_APPROVED': ShieldCheck,
   'ACCESS_REJECTED': ShieldCheck,
   'ACCESS_REVOKED': ShieldCheck,
@@ -61,6 +64,9 @@ const notificationColors: Record<string, string> = {
   'PROJECT_EDIT_REQUESTED': 'text-primary bg-primary/10',
   'PROJECT_EDIT_APPROVED': 'text-success bg-success/10',
   'PROJECT_EDIT_REJECTED': 'text-destructive bg-destructive/10',
+  'PROJECT_ARCHIVE_REQUESTED': 'text-primary bg-primary/10',
+  'PROJECT_ARCHIVE_APPROVED': 'text-success bg-success/10',
+  'PROJECT_ARCHIVE_REJECTED': 'text-destructive bg-destructive/10',
   'ACCESS_APPROVED': 'text-success bg-success/10',
   'ACCESS_REJECTED': 'text-destructive bg-destructive/10',
   'ACCESS_REVOKED': 'text-warning bg-warning/10',
@@ -140,6 +146,13 @@ export default function NotificationsPage() {
         return user?.role === 'ADMIN' ? '/app/admin/projects/review-queue' : undefined;
       case 'PROJECT_EDIT_APPROVED':
       case 'PROJECT_EDIT_REJECTED':
+        return notification.relatedId && user?.role === 'DEVELOPER'
+          ? `/app/developer/projects/${notification.relatedId}`
+          : undefined;
+      case 'PROJECT_ARCHIVE_REQUESTED':
+        return user?.role === 'ADMIN' ? '/app/admin/projects/review-queue' : undefined;
+      case 'PROJECT_ARCHIVE_APPROVED':
+      case 'PROJECT_ARCHIVE_REJECTED':
         return notification.relatedId && user?.role === 'DEVELOPER'
           ? `/app/developer/projects/${notification.relatedId}`
           : undefined;

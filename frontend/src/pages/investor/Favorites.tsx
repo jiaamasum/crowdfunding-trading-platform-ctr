@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Money, SharesProgress } from '@/components/ui/money';
@@ -10,13 +11,17 @@ import { PageContainer } from '@/components/ui/page-container';
 import { Heart, ExternalLink } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { projectsApi } from '@/lib/projectsApi';
+import { investmentsApi } from '@/lib/investmentsApi';
 import { MediaImage } from '@/components/common/MediaImage';
 import type { Project } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { favorites, removeFavoriteRemote } = useAppStore();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [investedProjectIds, setInvestedProjectIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -30,6 +35,27 @@ export default function FavoritesPage() {
 
     loadProjects();
   }, []);
+
+  useEffect(() => {
+    const loadInvestedProjects = async () => {
+      if (!user || user.role !== 'INVESTOR') {
+        setInvestedProjectIds(new Set());
+        return;
+      }
+      try {
+        const investedStatuses = new Set(['COMPLETED', 'WITHDRAWN', 'REFUNDED', 'REVERSED', 'PROCESSING']);
+        const investments = await investmentsApi.list();
+        const investedIds = investments
+          .filter((inv) => investedStatuses.has(inv.status))
+          .map((inv) => inv.projectId);
+        setInvestedProjectIds(new Set(investedIds));
+      } catch (error) {
+        console.error('Failed to load investments', error);
+      }
+    };
+
+    loadInvestedProjects();
+  }, [user]);
 
   const favoriteProjects = useMemo(() => {
     return projects.filter(p => favorites.includes(p.id));
@@ -65,9 +91,16 @@ export default function FavoritesPage() {
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <Link to={`/projects/${project.id}`}>
-                    <h3 className="font-display font-semibold line-clamp-1 hover:text-accent transition-colors">
-                      {project.title}
-                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display font-semibold line-clamp-1 hover:text-accent transition-colors">
+                        {project.title}
+                      </h3>
+                      {investedProjectIds.has(project.id) && (
+                        <Badge variant="outline" className="bg-success text-success-foreground border-success/60 shadow-soft-sm">
+                          Invested
+                        </Badge>
+                      )}
+                    </div>
                   </Link>
                   <Button
                     variant="ghost"

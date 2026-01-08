@@ -171,3 +171,37 @@ class ProjectEditRequest(models.Model):
 
     def __str__(self):
         return f"Edit request for {self.project.title} by {self.requested_by.email}"
+
+
+class ProjectArchiveRequest(models.Model):
+    """Archive requests for projects."""
+
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', 'Pending'
+        APPROVED = 'APPROVED', 'Approved'
+        REJECTED = 'REJECTED', 'Rejected'
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='archive_requests')
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='project_archive_requests'
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    review_note = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='project_archive_reviews'
+    )
+
+    class Meta:
+        db_table = 'project_archive_requests'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Archive request for {self.project.title} by {self.requested_by.email}"
