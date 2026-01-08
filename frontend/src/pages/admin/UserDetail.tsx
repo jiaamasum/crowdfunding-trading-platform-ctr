@@ -188,6 +188,8 @@ export default function UserDetailPage() {
   const withdrawnInvestedTotal = withdrawnInvestments.reduce((sum, inv) => sum + inv.totalAmount, 0);
   const totalRaised = projects.reduce((sum, p) => sum + (p.sharesSold * p.perSharePrice), 0);
   const activeInvestmentCount = activeInvestments.length;
+  const totalInvestmentCount = investments.length;
+  const withdrawnInvestmentCount = withdrawnInvestments.length;
 
   return (
     <div className="space-y-6">
@@ -291,6 +293,7 @@ export default function UserDetailPage() {
               <div>
                 <p className="text-2xl font-bold">${withdrawnInvestedTotal.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Withdrawn/Refunded</p>
+                <p className="text-xs text-muted-foreground">Count: {withdrawnInvestmentCount}</p>
               </div>
             </CardContent>
           </Card>
@@ -324,6 +327,7 @@ export default function UserDetailPage() {
               <div>
                 <p className="text-2xl font-bold">{activeInvestmentCount}</p>
                 <p className="text-sm text-muted-foreground">Active Investments</p>
+                <p className="text-xs text-muted-foreground">Total: {totalInvestmentCount}</p>
               </div>
             </CardContent>
           </Card>
@@ -374,6 +378,9 @@ export default function UserDetailPage() {
           <TabsList>
             <TabsTrigger value="investments" className="gap-2">
               <Receipt className="h-4 w-4" /> Investments ({investments.length})
+              <span className="hidden text-xs text-muted-foreground sm:inline">
+                Active {activeInvestmentCount}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="access" className="gap-2">
               <ShieldCheck className="h-4 w-4" /> Access Requests ({accessRequests.length})
