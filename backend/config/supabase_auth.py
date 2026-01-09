@@ -144,21 +144,44 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                     signing_key = jwks_client.get_signing_key_from_jwt(token)
                     log_debug(f"Found signing key with kid: {signing_key.key_id if hasattr(signing_key, 'key_id') else 'unknown'}")
                     
+                    # Build the expected issuer URL from settings
+                    expected_issuer = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1"
+                    
                     # Verify using the public key (ES256 for Supabase)
-                    # Disable audience verification as it may vary
+                    # STRICT VERIFICATION:
+                    # - Signature: Verified via JWKS public key
+                    # - Expiration: Verified (verify_exp=True by default)
+                    # - Issuer: Strictly verified to match our Supabase project
+                    # NOTE: Supabase tokens don't include 'aud' claim, so we verify 'iss' instead
                     payload = jwt.decode(
                         token,
                         signing_key.key,
                         algorithms=['ES256', 'RS256'],
+                        issuer=expected_issuer,  # Strict issuer check
                         options={
-                            "verify_aud": False,  # Skip audience check
-                            "verify_exp": True,
+                            "verify_aud": False,   # Supabase doesn't include 'aud' claim
+                            "verify_iss": True,    # Strictly verify issuer
+                            "verify_exp": True,    # Verify expiration
+                            "require": ["sub", "email", "iss", "exp"],  # Required claims
                         }
                     )
-                    log_debug("JWKS Verification SUCCESS")
+                    log_debug("JWKS Verification SUCCESS (strict issuer verified)")
+                    
+                    # Additional strict check: verify role is 'authenticated' (not 'anon' or 'service_role')
+                    token_role = payload.get('role')
+                    if token_role != 'authenticated':
+                        log_debug(f"STRICT CHECK FAILED: Expected role 'authenticated', got '{token_role}'")
+                        raise exceptions.AuthenticationFailed(f'Invalid token role: {token_role}')
+                        
                 except jwt.ExpiredSignatureError:
                     log_debug("JWKS Verification FAILED: Token has expired")
                     raise exceptions.AuthenticationFailed('Token has expired')
+                except jwt.InvalidIssuerError:
+                    log_debug(f"JWKS Verification FAILED: Invalid issuer (expected {expected_issuer})")
+                    raise exceptions.AuthenticationFailed('Invalid token issuer')
+                except jwt.MissingRequiredClaimError as e:
+                    log_debug(f"JWKS Verification FAILED: Missing required claim: {e}")
+                    raise exceptions.AuthenticationFailed(f'Token missing required claim: {e}')
                 except Exception as jwks_error:
                     log_debug(f"JWKS Verification FAILED: {type(jwks_error).__name__}: {jwks_error}")
                     
