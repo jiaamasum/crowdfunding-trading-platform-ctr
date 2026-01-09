@@ -30,6 +30,60 @@ def health_check(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def debug_jwt(request):
+    """Debug JWT verification - REMOVE IN PRODUCTION."""
+    import jwt
+    from jwt import PyJWKClient
+    from django.conf import settings
+    
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    if not auth_header.startswith('Bearer '):
+        return Response({'error': 'No Bearer token'}, status=400)
+    
+    token = auth_header.split(' ')[1]
+    result = {'token_preview': token[:50] + '...'}
+    
+    try:
+        # Get unverified header
+        header = jwt.get_unverified_header(token)
+        result['header'] = header
+        
+        # Get unverified payload
+        unverified = jwt.decode(token, options={"verify_signature": False})
+        result['unverified_payload'] = {k: v for k, v in unverified.items() if k not in ['email']}
+        
+        # Try JWKS verification
+        supabase_url = settings.SUPABASE_URL.rstrip('/')
+        jwks_url = f"{supabase_url}/auth/v1/.well-known/jwks.json"
+        result['jwks_url'] = jwks_url
+        
+        jwks_client = PyJWKClient(jwks_url)
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        result['signing_key_found'] = True
+        result['key_id'] = signing_key.key_id if hasattr(signing_key, 'key_id') else 'N/A'
+        
+        expected_issuer = f"{supabase_url}/auth/v1"
+        result['expected_issuer'] = expected_issuer
+        result['token_issuer'] = unverified.get('iss')
+        
+        # Verify
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=['ES256', 'RS256'],
+            options={"verify_aud": False}
+        )
+        result['verification'] = 'SUCCESS'
+        result['verified_role'] = payload.get('role')
+        
+    except Exception as e:
+        result['error'] = f"{type(e).__name__}: {str(e)}"
+    
+    return Response(result)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
@@ -105,6 +159,7 @@ urlpatterns = [
     
     # Health check for Docker/Kubernetes
     path('api/health/', health_check, name='health-check'),
+    path('api/debug-jwt/', debug_jwt, name='debug-jwt'),  # TEMP - remove after debugging
     
     # API routes
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
