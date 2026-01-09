@@ -76,9 +76,30 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
             except Exception:
                 pass
 
-        log_debug("Received Supabase token")
+        log_debug("Received token for authentication")
             
         try:
+            # --- Step 0: Detect Token Type ---
+            # Check if this is a SimpleJWT token (has token_type) vs Supabase token (has iss with supabase URL)
+            # If it's a SimpleJWT token, return None to let SimpleJWT authentication handle it
+            try:
+                unverified_payload = jwt.decode(token, options={"verify_signature": False})
+                
+                # SimpleJWT tokens have 'token_type' field
+                if 'token_type' in unverified_payload and 'sub' not in unverified_payload:
+                    log_debug("Detected SimpleJWT token (has token_type, no sub) - deferring to SimpleJWT auth")
+                    return None
+                
+                # Check if issuer is from Supabase
+                iss = unverified_payload.get('iss', '')
+                if iss and 'supabase' not in iss.lower():
+                    log_debug(f"Token issuer '{iss}' is not Supabase - deferring to other auth")
+                    return None
+                    
+                log_debug(f"Token appears to be Supabase token (iss={iss})")
+            except Exception as e:
+                log_debug(f"Could not pre-analyze token: {e}")
+            
             # --- Step 1: Preliminary Token Analysis ---
             # We look at the unverified header to see what algorithm the token claims to use.
             # This helps in debugging mismatch issues (e.g. token is RS256 but we expect HS256).
