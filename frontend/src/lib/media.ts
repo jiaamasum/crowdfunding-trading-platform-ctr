@@ -51,6 +51,16 @@ const parseStorageReference = (value?: string | null, bucketHint?: string): Stor
     try {
       const url = new URL(trimmed);
       const path = url.pathname;
+      
+      // Handle /api/media/resolve/ URLs (e.g., from backend responses)
+      if (path.includes('/api/media/resolve')) {
+        const bucket = url.searchParams.get('bucket');
+        const pathParam = url.searchParams.get('path');
+        if (bucket && pathParam) {
+          return withAlias(bucket, decodeURIComponent(pathParam));
+        }
+      }
+      
       if (path.includes(STORAGE_PUBLIC_PATH)) {
         const tail = path.split(STORAGE_PUBLIC_PATH)[1];
         const [bucket, ...rest] = tail.split('/');
