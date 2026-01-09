@@ -92,7 +92,19 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 
 class ProjectListCreateView(generics.ListCreateAPIView):
-    """List all approved projects or create a new project."""
+    """
+    API View to list projects and create new ones.
+    
+    Features:
+    - Lists all 'APPROVED' projects for public/investor users.
+    - Lists all projects (including drafts) for ADMIN users.
+    - Lists own projects (mixed status) + all 'APPROVED' projects for DEVELOPER users.
+    - Supports advanced filtering by:
+        - Category and Status (exact match)
+        - Search (title, description)
+        - Numeric ranges (funding progress, share price, total value, duration)
+    - Supports sorting by calculated fields (funding_progress, per_share_price).
+    """
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'status']
     search_fields = ['title', 'short_description', 'description']
@@ -100,6 +112,13 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
+        """
+        Build the queryset with dynamic annotations and role-based filtering.
+        
+        Annotations are used to calculate fields on the fly at the database level for efficient sorting/filtering:
+        - per_share_price_value: Calculated as total_value / total_shares (handles division by zero).
+        - funding_progress_value: Calculated as (shares_sold / total_shares) * 100.
+        """
         def is_admin(user):
             return user.is_authenticated and (
                 getattr(user, 'role', None) == 'ADMIN'
@@ -107,6 +126,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
                 or getattr(user, 'is_superuser', False)
             )
 
+        # Base queryset with calculated fields for sorting/filtering
         queryset = Project.objects.all().annotate(
             per_share_price_value=Case(
                 When(total_shares__gt=0, then=ExpressionWrapper(F('total_value') / F('total_shares'), output_field=FloatField())),
@@ -121,16 +141,21 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         )
         user = self.request.user
         
-        # Filter based on user role
+        # --- Role-Based Filtering ---
         if not user.is_authenticated:
+            # Guests see only approved projects
             queryset = queryset.filter(status='APPROVED')
         elif is_admin(user):
+            # Admins see everything
             queryset = queryset
         elif user.role == 'DEVELOPER':
+            # Developers see approved projects AND their own projects (even if draft/pending)
             queryset = queryset.filter(Q(status='APPROVED') | Q(developer=user))
         else:  # INVESTOR
+            # Investors see only approved projects
             queryset = queryset.filter(status='APPROVED')
 
+        # --- numeric Filters Helper Functions ---
         def parse_float(value):
             try:
                 return float(value)
@@ -143,6 +168,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
             except (TypeError, ValueError):
                 return None
 
+        # --- Extract Query Parameters ---
         min_progress = parse_float(self.request.query_params.get('min_progress'))
         max_progress = parse_float(self.request.query_params.get('max_progress'))
         min_share_price = parse_float(self.request.query_params.get('min_share_price'))
@@ -152,6 +178,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         min_duration = parse_int(self.request.query_params.get('min_duration'))
         max_duration = parse_int(self.request.query_params.get('max_duration'))
 
+        # --- Apply Filters ---
         if min_progress is not None:
             queryset = queryset.filter(funding_progress_value__gte=min_progress)
         if max_progress is not None:
@@ -169,6 +196,8 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         if max_duration is not None:
             queryset = queryset.filter(duration_days__lte=max_duration)
 
+        # --- Apply Custom Ordering ---
+        # Map frontend sort keys to our annotated database fields
         ordering = self.request.query_params.get('ordering')
         if ordering:
             ordering_map = {
@@ -182,16 +211,26 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         return queryset
     
     def get_serializer_class(self):
+        """Use different serializers for reading (List) vs writing (Create)."""
         if self.request.method == 'POST':
             return ProjectCreateSerializer
         return ProjectListSerializer
     
     def get_permissions(self):
+        """Allow public read access, but require authentication to create."""
         if self.request.method == 'POST':
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
     
     def perform_create(self, serializer):
+        """
+        Save the new project and capture audit logs.
+        
+        Steps:
+        1. Save project with the current user as the developer.
+        2. Create an initial AuditLog entry for creation.
+        3. Create an initial Ledger entry for the project history.
+        """
         project = serializer.save(developer=self.request.user)
         project_snapshot = {
             'project_id': str(project.id),

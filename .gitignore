@@ -6,6 +6,7 @@ __pycache__/
 backend/venv/
 backend/db.sqlite3
 .env
+env
 .DS_Store
 db_detail.md
 need_to_update.md

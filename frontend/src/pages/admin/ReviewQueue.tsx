@@ -11,10 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Eye,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   FileCheck,
   Clock
@@ -36,6 +36,8 @@ export default function ReviewQueue() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [editRequests, setEditRequests] = useState<ProjectEditRequest[]>([]);
   const [archiveRequests, setArchiveRequests] = useState<ProjectArchiveRequest[]>([]);
+  const [selectedArchiveRequest, setSelectedArchiveRequest] = useState<ProjectArchiveRequest | null>(null);
+  const [archiveDecisionType, setArchiveDecisionType] = useState<'approve' | 'reject' | null>(null);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -84,7 +86,7 @@ export default function ReviewQueue() {
 
   const handleDecision = async () => {
     if (!selectedProject || !decisionType || !note.trim()) return;
-    
+
     setIsSubmitting(true);
     try {
       const action = decisionType === 'approve' ? 'approve' : decisionType === 'reject' ? 'reject' : 'request_changes';
@@ -105,12 +107,12 @@ export default function ReviewQueue() {
       return;
     }
     setIsSubmitting(false);
-    
+
     toast({
       title: `Project ${decisionType === 'approve' ? 'Approved' : decisionType === 'reject' ? 'Rejected' : 'Sent for Changes'}`,
       description: `${selectedProject.title} has been ${decisionType === 'approve' ? 'approved and is now live' : decisionType === 'reject' ? 'rejected' : 'sent back for changes'}.`,
     });
-    
+
     setSelectedProject(null);
     setDecisionType(null);
     setNote('');
@@ -195,8 +197,8 @@ export default function ReviewQueue() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {getPreviewImage(project) ? (
-                              <MediaImage 
-                                src={getPreviewImage(project)} 
+                              <MediaImage
+                                src={getPreviewImage(project)}
                                 alt={project.title}
                                 className="w-12 h-12 rounded-lg object-cover"
                               />
@@ -224,25 +226,25 @@ export default function ReviewQueue() {
                                 <Eye className="h-4 w-4" /> Review
                               </Button>
                             </Link>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
+                            <Button
+                              variant="default"
+                              size="sm"
                               className="gap-1 bg-success hover:bg-success/90"
                               onClick={() => { setSelectedProject(project); setDecisionType('approve'); }}
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="gap-1 text-warning border-warning hover:bg-warning/10"
                               onClick={() => { setSelectedProject(project); setDecisionType('needs_changes'); }}
                             >
                               <AlertCircle className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
                               onClick={() => { setSelectedProject(project); setDecisionType('reject'); }}
                             >
@@ -333,7 +335,7 @@ export default function ReviewQueue() {
                               variant="default"
                               size="sm"
                               className="gap-1 bg-success hover:bg-success/90"
-                              onClick={() => handleArchiveDecision(req, 'approve')}
+                              onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('approve'); }}
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>
@@ -341,7 +343,7 @@ export default function ReviewQueue() {
                               variant="outline"
                               size="sm"
                               className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
-                              onClick={() => handleArchiveDecision(req, 'reject')}
+                              onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('reject'); }}
                             >
                               <XCircle className="h-4 w-4" />
                             </Button>
@@ -374,8 +376,8 @@ export default function ReviewQueue() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           {getPreviewImage(project) ? (
-                            <MediaImage 
-                              src={getPreviewImage(project)} 
+                            <MediaImage
+                              src={getPreviewImage(project)}
                               alt={project.title}
                               className="w-10 h-10 rounded-lg object-cover"
                             />
@@ -478,8 +480,8 @@ export default function ReviewQueue() {
               <div className="space-y-4 py-4">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
                   {getPreviewImage(selectedProject) ? (
-                    <MediaImage 
-                      src={getPreviewImage(selectedProject)} 
+                    <MediaImage
+                      src={getPreviewImage(selectedProject)}
                       alt={selectedProject.title}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
@@ -495,12 +497,12 @@ export default function ReviewQueue() {
                 </div>
                 <div className="space-y-2">
                   <Label>Decision Note (Required)</Label>
-                  <Textarea 
-                    placeholder={decisionType === 'approve' 
+                  <Textarea
+                    placeholder={decisionType === 'approve'
                       ? 'Add any notes about the approval...'
                       : decisionType === 'reject'
-                      ? 'Explain why this project is being rejected...'
-                      : 'Describe what changes are needed...'}
+                        ? 'Explain why this project is being rejected...'
+                        : 'Describe what changes are needed...'}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     className="min-h-[100px]"
@@ -511,8 +513,8 @@ export default function ReviewQueue() {
                 <Button variant="outline" onClick={() => { setSelectedProject(null); setDecisionType(null); setNote(''); }}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleDecision} 
+                <Button
+                  onClick={handleDecision}
                   disabled={!note.trim() || isSubmitting}
                   className={getDecisionConfig(decisionType).btnColor}
                 >
@@ -521,6 +523,71 @@ export default function ReviewQueue() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Decision Dialog */}
+      <Dialog open={!!selectedArchiveRequest && !!archiveDecisionType} onOpenChange={() => { setSelectedArchiveRequest(null); setArchiveDecisionType(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-warning" />
+              Are you sure?
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-6">
+            {archiveDecisionType === 'approve' && (
+              <div className="p-4 rounded-lg bg-warning/10 border border-warning/20 mb-4">
+                <p className="text-sm font-medium text-black flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  Wait! This action has financial implications.
+                </p>
+              </div>
+            )}
+
+            <p className="text-muted-foreground mb-4">
+              You are about to <span className="font-medium text-foreground">{archiveDecisionType === 'approve' ? 'approve' : 'reject'}</span> the archive request for <span className="font-medium text-foreground">{selectedArchiveRequest?.projectTitle}</span>.
+            </p>
+
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-foreground mt-2 shrink-0" />
+                <p>{archiveDecisionType === 'approve' ? 'The project status will be updated immediately.' : 'The project will remain active.'}</p>
+              </div>
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-foreground mt-2 shrink-0" />
+                <p>Investors will be notified of the decision.</p>
+              </div>
+              {archiveDecisionType === 'approve' && (
+                <div className="flex items-start gap-2 text-sm font-medium text-destructive">
+                  <div className="h-1.5 w-1.5 rounded-full bg-current mt-2 shrink-0" />
+                  <p>IMPORTANT: Any held funds will be automatically refunded to investors.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setSelectedArchiveRequest(null); setArchiveDecisionType(null); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedArchiveRequest && archiveDecisionType) {
+                  handleArchiveDecision(selectedArchiveRequest, archiveDecisionType);
+                  setSelectedArchiveRequest(null);
+                  setArchiveDecisionType(null);
+                }
+              }}
+              className={archiveDecisionType === 'approve' ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary hover:bg-primary/90'}
+            >
+              {archiveDecisionType === 'approve' ? 'Yes, Archive & Refund' : 'Yes, Reject Request'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
