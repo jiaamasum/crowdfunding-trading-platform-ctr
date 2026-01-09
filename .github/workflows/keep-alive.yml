@@ -1,0 +1,56 @@
+name: Keep Services Alive
+
+on:
+  schedule:
+    # Run every 14 minutes to prevent Render free tier from sleeping (15 min timeout)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging backend to keep it alive..."
+          
+          # Replace with your actual Render backend URL
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          
+          if [ -z "$BACKEND_URL" ]; then
+            echo "BACKEND_URL secret not set, using default"
+            BACKEND_URL="https://your-backend.onrender.com"
+          fi
+          
+          # Ping health endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/health/" --max-time 60 || echo "000")
+          
+          if [ "$response" = "200" ] || [ "$response" = "301" ] || [ "$response" = "302" ]; then
+            echo "✅ Backend is alive (HTTP $response)"
+          else
+            echo "⚠️ Backend responded with HTTP $response"
+            # Try root endpoint as fallback
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/" --max-time 60 || echo "000")
+            echo "Root endpoint responded with HTTP $response"
+          fi
+
+      - name: Ping Frontend (Optional)
+        run: |
+          echo "Pinging frontend..."
+          
+          FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+          
+          if [ -z "$FRONTEND_URL" ]; then
+            echo "FRONTEND_URL secret not set, using default"
+            FRONTEND_URL="https://cfp-frontend.vercel.app"
+          fi
+          
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$FRONTEND_URL" --max-time 30 || echo "000")
+          echo "Frontend responded with HTTP $response"
+
+  # Keep the workflow active (GitHub disables scheduled workflows after 60 days of repo inactivity)
+  keep-workflow-active:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep workflow active
+        run: echo "Workflow is active - $(date)"
