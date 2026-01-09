@@ -35,3 +35,4 @@ pytest_debug.log
 *.log
 .pytest_cache/
 frontend/.vercel/
+render.yaml
