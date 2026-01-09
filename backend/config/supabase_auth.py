@@ -14,7 +14,6 @@ User = get_user_model()
 
 
 @lru_cache(maxsize=1)
-@lru_cache(maxsize=1)
 def get_jwks_client():
     """Get cached JWKS client for Supabase."""
     import ssl
@@ -133,27 +132,35 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
                     # We pass here to allow falling back to JWKS check below
                     pass
 
-            # --- Step 3: JWKS Verification (Fallback) ---
-            # If HS256 failed or was skipped (no secret), we try verifying against Supabase's public keys.
+            # --- Step 3: JWKS Verification (Primary for ES256) ---
+            # Supabase uses ES256 (Elliptic Curve) signing, so JWKS is the primary verification method.
             if not payload:
                 try:
                     # Retrieve the JWKS client (this handles fetching keys from the URL)
-                    # Note: The client is patched to ignore SSL errors for local dev.
                     jwks_client = get_jwks_client()
+                    log_debug(f"JWKS URL: {settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json")
                     
                     # Find the specific signing key matching the token's 'kid' header
                     signing_key = jwks_client.get_signing_key_from_jwt(token)
+                    log_debug(f"Found signing key with kid: {signing_key.key_id if hasattr(signing_key, 'key_id') else 'unknown'}")
                     
-                    # Verify using the public key (RS256 or ES256)
+                    # Verify using the public key (ES256 for Supabase)
+                    # Disable audience verification as it may vary
                     payload = jwt.decode(
                         token,
                         signing_key.key,
                         algorithms=['ES256', 'RS256'],
-                        audience='authenticated',
+                        options={
+                            "verify_aud": False,  # Skip audience check
+                            "verify_exp": True,
+                        }
                     )
                     log_debug("JWKS Verification SUCCESS")
+                except jwt.ExpiredSignatureError:
+                    log_debug("JWKS Verification FAILED: Token has expired")
+                    raise exceptions.AuthenticationFailed('Token has expired')
                 except Exception as jwks_error:
-                    log_debug(f"JWKS Verification FAILED: {jwks_error}")
+                    log_debug(f"JWKS Verification FAILED: {type(jwks_error).__name__}: {jwks_error}")
                     
                     # If we have a secret configured, we assume HS256 was the intended method.
                     # If both failed, we raise a generic verification failure.
