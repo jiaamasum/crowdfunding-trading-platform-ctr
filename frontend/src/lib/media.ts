@@ -124,6 +124,15 @@ export const normalizeMediaUrl = (value?: string | null, bucket?: string) => {
   if (!trimmed || ['null', 'undefined', 'none'].includes(trimmed.toLowerCase())) return undefined;
   if (isAbsoluteUrl(trimmed)) {
     if (isDataUrl(trimmed) || isBlobUrl(trimmed)) return trimmed;
+    
+    // IMPORTANT: Parse the URL to extract bucket/path and reconstruct with correct API base
+    // This handles URLs stored with localhost that need to work in production
+    const reference = parseStorageReference(trimmed, bucket);
+    if (reference) {
+      // Always reconstruct with current API_BASE_URL to handle localhost URLs in production
+      return resolveMediaUrl(reference.bucket, reference.path);
+    }
+    
     try {
       const url = new URL(trimmed);
       const path = url.pathname;
@@ -132,10 +141,6 @@ export const normalizeMediaUrl = (value?: string | null, bucket?: string) => {
       }
     } catch {
       return trimmed;
-    }
-    const reference = parseStorageReference(trimmed, bucket);
-    if (reference) {
-      return resolveMediaUrl(reference.bucket, reference.path);
     }
     return trimmed;
   }

@@ -77,7 +77,19 @@ import AdminProjectLedgerDetail from "./pages/admin/ProjectLedgerDetail";
 // Guards
 import { RequireAuth } from "@/components/auth/RouteGuards";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes - data considered fresh
+      gcTime: 1000 * 60 * 10, // 10 minutes - keep in cache
+      retry: 1, // Only retry once on failure
+      refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    },
+    mutations: {
+      retry: 0, // Don't retry mutations
+    },
+  },
+});
 
 function AuthHashRedirect({ children }: { children: React.ReactNode }) {
   const location = useLocation();

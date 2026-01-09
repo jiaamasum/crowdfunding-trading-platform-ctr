@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Menu, TrendingUp } from 'lucide-react';
+import { Bell, Menu, TrendingUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuthStore } from '@/store/authStore';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const { user, logout } = useAuthStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const navigate = useNavigate();
 
@@ -104,9 +106,10 @@ export default function DashboardHeader({
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-accent to-primary flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-display font-bold">CrowdFund</span>
+            <span className="text-xl font-display font-bold hidden sm:inline">CrowdFund</span>
           </Link>
         )}
+        
         {links.length > 0 && (
           <nav className="hidden md:flex items-center gap-8">
             {links.map((link) => (
@@ -134,10 +137,10 @@ export default function DashboardHeader({
         {user ? (
           <>
             <Link to={`${dashboardPath}/notifications`} className="relative">
-              <Button variant="ghost" size="icon" aria-label="Notifications">
-                <Bell className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" aria-label="Notifications">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-[10px]">
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 sm:h-5 sm:min-w-5 px-0.5 sm:px-1 text-[9px] sm:text-[10px]">
                     {unreadCount}
                   </Badge>
                 )}
@@ -148,11 +151,11 @@ export default function DashboardHeader({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="gap-2 px-2"
+                  className="gap-1 sm:gap-2 px-1 sm:px-2"
                   onMouseEnter={handleMenuEnter}
                   onMouseLeave={handleMenuLeave}
                 >
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                     {user?.avatarUrl && (
                       <MediaImage
                         src={user.avatarUrl}
@@ -162,7 +165,7 @@ export default function DashboardHeader({
                         loading="eager"
                       />
                     )}
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-semibold">
                       {user?.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -193,13 +196,137 @@ export default function DashboardHeader({
             </DropdownMenu>
           </>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {showThemeToggle && <ThemeToggle />}
-            <Link to="/auth/login"><Button variant="ghost" size="sm">Sign In</Button></Link>
-            <Link to="/auth/register"><Button variant="highlight" size="sm">Get Started</Button></Link>
+            <Link to="/auth/login"><Button variant="ghost" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm">Sign In</Button></Link>
+            <Link to="/auth/register"><Button variant="highlight" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">Get Started</Button></Link>
           </div>
         )}
+        
+        {/* Mobile Menu Button - Right side, after all buttons */}
+        {links.length > 0 && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden shrink-0"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
       </div>
+      
+      {/* Mobile Navigation Sheet - Right side */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+          <SheetHeader className="text-left">
+            <SheetTitle>
+              <Link to="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent to-primary flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <span className="text-lg font-display font-bold">CrowdFund</span>
+              </Link>
+            </SheetTitle>
+          </SheetHeader>
+          <nav className="flex flex-col gap-2 mt-6">
+            {links.map((link) => (
+              link.external || link.to.startsWith('/#') ? (
+                <a
+                  key={link.label}
+                  href={link.to}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              )
+            ))}
+          </nav>
+          {user && (
+            <div className="mt-6 pt-6 border-t">
+              <div className="flex items-center gap-3 px-3 mb-4">
+                <Avatar className="h-10 w-10">
+                  {user?.avatarUrl && (
+                    <MediaImage
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="aspect-square h-full w-full"
+                      bucket="users-profile-image"
+                      loading="eager"
+                    />
+                  )}
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                    {user?.name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-sm">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+              <Link
+                to={dashboardPath}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {dashboardLabel}
+              </Link>
+              <Link
+                to={profilePath}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <button
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-destructive hover:bg-destructive/10 transition-colors w-full text-left"
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+          {!user && (
+            <div className="mt-6 pt-6 border-t flex flex-col gap-3">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate('/auth/login');
+                }}
+              >
+                Sign In
+              </Button>
+              <Button 
+                variant="highlight" 
+                className="w-full" 
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate('/auth/register');
+                }}
+              >
+                Get Started
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </header>
   );
 }

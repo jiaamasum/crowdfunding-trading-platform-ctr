@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import {
   Award, Sparkles, Play, Quote, Building2, Leaf, Heart, Lightbulb,
   Rocket, Clock, DollarSign, TrendingDown, ShieldCheck, Eye, X, GitCompare
 } from 'lucide-react';
-import { projectsApi } from '@/lib/projectsApi';
 import { Money, SharesProgress } from '@/components/ui/money';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
@@ -106,9 +105,13 @@ const partners = [
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import { MediaImage } from '@/components/common/MediaImage';
+import { useFeaturedProjects, usePrefetchProject } from '@/hooks/useProjects';
 
 export default function LandingPage() {
-  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  // Use React Query for featured projects - provides caching and background refetching
+  const { data: featuredProjects = [], isLoading: isLoadingFeatured } = useFeaturedProjects(6);
+  const prefetchProject = usePrefetchProject();
+  
   const { favorites, addFavoriteRemote, removeFavoriteRemote, isInCompare, addToCompareRemote, removeFromCompareRemote, canAddToCompare, isFavorite } = useAppStore();
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -181,35 +184,19 @@ export default function LandingPage() {
     );
   };
 
-  const loadFeatured = useCallback(async () => {
-    try {
-      const response = await projectsApi.list(undefined, 'newest', 1, 6);
-      setFeaturedProjects(response.data.filter(p => p.status === 'APPROVED').slice(0, 6));
-    } catch (error) {
-      console.error('Failed to load featured projects', error);
-      setFeaturedProjects([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadFeatured();
-  }, [loadFeatured]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadFeatured();
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [loadFeatured]);
+  // Prefetch project details when hovering over project cards
+  const handleProjectHover = (projectId: string) => {
+    prefetchProject(projectId);
+  };
 
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Demo Video Dialog */}
       <Dialog open={showDemo} onOpenChange={setShowDemo}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black sm:max-w-2xl md:max-w-4xl">
           <div className="relative aspect-video">
             <iframe
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+              src="https://www.youtube.com/embed/W0yWAXwcvXc?autoplay=1"
               title="CrowdFund Demo Video"
               className="absolute inset-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -250,20 +237,21 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-bold mb-4 sm:mb-6 leading-tight px-2"
             >
               Invest in the{' '}
               <span className="bg-gradient-to-r from-accent via-primary to-accent bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
                 Future
               </span>
-              <br />You Believe In
+              <br className="hidden sm:block" />
+              <span className="sm:hidden"> </span>You Believe In
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
             >
               Join thousands of investors building wealth through fractional ownership in vetted,
               high-potential projects. Start with as little as $50.
@@ -292,30 +280,30 @@ export default function LandingPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="mt-12 flex flex-wrap items-center justify-center gap-6 text-muted-foreground"
+              className="mt-8 sm:mt-12 pb-16 sm:pb-0 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-muted-foreground px-4"
             >
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                <span className="text-sm">Bank-level Security</span>
+                <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+                <span className="text-xs sm:text-sm">Bank-level Security</span>
               </div>
               <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-amber-500" />
-                <span className="text-sm">Vetted Projects</span>
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+                <span className="text-xs sm:text-sm">Vetted Projects</span>
               </div>
               <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-blue-500" />
-                <span className="text-sm">Global Access</span>
+                <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+                <span className="text-xs sm:text-sm">Global Access</span>
               </div>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator - hidden on mobile to prevent overlap */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:block"
         >
           <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
             <motion.div
@@ -328,9 +316,9 @@ export default function LandingPage() {
       </section>
 
       {/* Section 3: Stats */}
-      <section className="py-16 bg-muted/30 border-y">
+      <section className="py-10 sm:py-16 bg-muted/30 border-y">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -340,11 +328,11 @@ export default function LandingPage() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10 mb-3">
-                  <stat.icon className="h-6 w-6 text-accent" />
+                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 mb-2 sm:mb-3">
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                 </div>
-                <div className="text-3xl md:text-4xl font-display font-bold text-foreground">{stat.value}</div>
-                <div className="text-muted-foreground text-sm mt-1">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground">{stat.value}</div>
+                <div className="text-muted-foreground text-xs sm:text-sm mt-1">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -352,21 +340,21 @@ export default function LandingPage() {
       </section>
 
       {/* Section 4: Features / Who It's For */}
-      <section className="py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-12 md:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Built for Everyone</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-3 sm:mb-4">Built for Everyone</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-4">
               Whether you are looking to invest or raise capital, our platform provides the tools you need to succeed.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -377,12 +365,12 @@ export default function LandingPage() {
               >
                 <Card className="h-full border-0 shadow-soft-lg hover:shadow-soft-xl transition-all duration-300 overflow-hidden group">
                   <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", feature.color)} />
-                  <CardContent className="relative pt-8 pb-8">
-                    <div className={cn("h-14 w-14 rounded-2xl bg-background shadow-soft flex items-center justify-center mb-6", feature.iconColor)}>
-                      <feature.icon className="h-7 w-7" />
+                  <CardContent className="relative pt-6 pb-6 sm:pt-8 sm:pb-8">
+                    <div className={cn("h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-background shadow-soft flex items-center justify-center mb-4 sm:mb-6", feature.iconColor)}>
+                      <feature.icon className="h-6 w-6 sm:h-7 sm:w-7" />
                     </div>
-                    <h3 className="text-xl font-display font-bold mb-3">{feature.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                    <h3 className="text-lg sm:text-xl font-display font-bold mb-2 sm:mb-3">{feature.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{feature.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -392,21 +380,21 @@ export default function LandingPage() {
       </section>
 
       {/* Section 5: How It Works */}
-      <section id="how-it-works" className="py-24 bg-muted/30">
+      <section id="how-it-works" className="py-12 sm:py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-12 md:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-3 sm:mb-4">How It Works</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-4">
               Start investing in minutes with our simple four-step process
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {howItWorks.map((item, i) => (
               <motion.div
                 key={item.step}
@@ -420,13 +408,13 @@ export default function LandingPage() {
                   <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-px bg-gradient-to-r from-accent/50 to-transparent" />
                 )}
                 <Card className="text-center h-full">
-                  <CardContent className="pt-8">
-                    <div className="text-5xl font-display font-bold text-accent/20 mb-4">{item.step}</div>
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent/10 mb-4">
-                      <item.icon className="h-7 w-7 text-accent" />
+                  <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 md:pt-8">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-accent/20 mb-2 sm:mb-4">{item.step}</div>
+                    <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-accent/10 mb-2 sm:mb-4">
+                      <item.icon className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-accent" />
                     </div>
-                    <h3 className="text-lg font-display font-bold mb-2">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm">{item.description}</p>
+                    <h3 className="text-sm sm:text-base md:text-lg font-display font-bold mb-1 sm:mb-2">{item.title}</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm line-clamp-3">{item.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -436,27 +424,27 @@ export default function LandingPage() {
       </section>
 
       {/* Section 6: Featured Projects */}
-      <section className="py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4"
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 md:mb-12 gap-3 sm:gap-4"
           >
             <div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold mb-2">Featured Projects</h2>
-              <p className="text-muted-foreground">Hand-picked opportunities ready for investment</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-1 sm:mb-2">Featured Projects</h2>
+              <p className="text-muted-foreground text-sm sm:text-base">Hand-picked opportunities ready for investment</p>
             </div>
             <Link to="/projects">
-              <Button variant="outline" className="gap-2 group">
+              <Button variant="outline" className="gap-2 group text-sm sm:text-base">
                 View All Projects
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {sortedFeaturedProjects.map((project, i) => (
               <motion.div
                 key={project.id}
@@ -541,19 +529,19 @@ export default function LandingPage() {
       </section>
 
       {/* Section 7: Categories */}
-      <section id="categories" className="py-24 bg-muted/30">
+      <section id="categories" className="py-12 sm:py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-6 sm:mb-8 md:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Investment Categories</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">Diversify your portfolio across multiple sectors</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-4">Investment Categories</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base px-4">Diversify your portfolio across multiple sectors</p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.name}
@@ -564,12 +552,12 @@ export default function LandingPage() {
               >
                 <Link to={`/projects?category=${cat.name.toUpperCase().replace(' ', '_')}`}>
                   <Card className="text-center hover:shadow-soft-lg transition-all hover:-translate-y-1 cursor-pointer">
-                    <CardContent className="pt-6 pb-6">
-                      <div className={cn("inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3", cat.color)}>
-                        <cat.icon className="h-6 w-6" />
+                    <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 px-2 sm:px-4">
+                      <div className={cn("inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-xl mb-2 sm:mb-3", cat.color)}>
+                        <cat.icon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                       </div>
-                      <h3 className="font-semibold text-sm mb-1">{cat.name}</h3>
-                      <p className="text-xs text-muted-foreground">{cat.count} projects</p>
+                      <h3 className="font-semibold text-xs sm:text-sm mb-0.5 sm:mb-1">{cat.name}</h3>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">{cat.count} projects</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -580,20 +568,20 @@ export default function LandingPage() {
       </section>
 
       {/* Section 8: Share Model Explainer */}
-      <section className="py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-6 sm:mb-8 md:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Simple Share-Based Model</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">Transparent pricing with no hidden fees</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-4">Simple Share-Based Model</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base px-4">Transparent pricing with no hidden fees</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -601,13 +589,13 @@ export default function LandingPage() {
                 transition={{ delay: 0.1 }}
               >
                 <Card className="text-center h-full border-2 border-dashed">
-                  <CardContent className="pt-8 pb-8">
-                    <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                      <DollarSign className="h-8 w-8 text-accent" />
+                  <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 md:pt-8 md:pb-8">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <DollarSign className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-accent" />
                     </div>
-                    <h3 className="text-lg font-display font-bold mb-2">Total Project Value</h3>
-                    <p className="text-muted-foreground text-sm mb-4">Each project has a defined funding goal</p>
-                    <div className="text-2xl font-bold text-accent">$2,500,000</div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-display font-bold mb-1 sm:mb-2">Total Project Value</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-4">Each project has a defined funding goal</p>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-accent">$2,500,000</div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -619,13 +607,13 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
               >
                 <Card className="text-center h-full border-2 border-dashed">
-                  <CardContent className="pt-8 pb-8">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <PieChart className="h-8 w-8 text-primary" />
+                  <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 md:pt-8 md:pb-8">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <PieChart className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-display font-bold mb-2">Fixed Share Count</h3>
-                    <p className="text-muted-foreground text-sm mb-4">Divided into purchasable shares</p>
-                    <div className="text-2xl font-bold text-primary">10,000 shares</div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-display font-bold mb-1 sm:mb-2">Fixed Share Count</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-4">Divided into purchasable shares</p>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-primary">10,000 shares</div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -635,15 +623,16 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
+                className="sm:col-span-2 md:col-span-1"
               >
                 <Card className="text-center h-full bg-gradient-to-br from-accent/10 to-primary/10 border-accent/30">
-                  <CardContent className="pt-8 pb-8">
-                    <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mx-auto mb-4 shadow-soft">
-                      <Target className="h-8 w-8 text-accent" />
+                  <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 md:pt-8 md:pb-8">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-background flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-soft">
+                      <Target className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-accent" />
                     </div>
-                    <h3 className="text-lg font-display font-bold mb-2">Per Share Price</h3>
-                    <p className="text-muted-foreground text-sm mb-4">Simple math, clear value</p>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">$250/share</div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-display font-bold mb-1 sm:mb-2">Per Share Price</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-4">Simple math, clear value</p>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">$250/share</div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -653,19 +642,19 @@ export default function LandingPage() {
       </section>
 
       {/* Section 9: Benefits Grid */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-12 sm:py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-6 sm:mb-8 md:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Why Choose CrowdFund</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">Built with investors and developers in mind</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-4">Why Choose CrowdFund</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base px-4">Built with investors and developers in mind</p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {benefits.map((benefit, i) => (
               <motion.div
                 key={benefit.title}
@@ -673,14 +662,14 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="flex items-start gap-4 p-6 rounded-xl bg-background border hover:shadow-soft-lg transition-shadow"
+                className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-xl bg-background border hover:shadow-soft-lg transition-shadow"
               >
-                <div className="shrink-0 w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <benefit.icon className="h-5 w-5 text-accent" />
+                <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <benefit.icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">{benefit.title}</h3>
-                  <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                  <h3 className="font-semibold text-sm sm:text-base mb-0.5 sm:mb-1">{benefit.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{benefit.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -689,19 +678,19 @@ export default function LandingPage() {
       </section>
 
       {/* Section 10: Testimonials */}
-      <section id="testimonials" className="py-24">
+      <section id="testimonials" className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-6 sm:mb-8 md:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Trusted by Thousands</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">Hear from our community of investors and developers</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-4">Trusted by Thousands</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base px-4">Hear from our community of investors and developers</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={testimonial.author}
@@ -711,19 +700,19 @@ export default function LandingPage() {
                 transition={{ delay: i * 0.1 }}
               >
                 <Card className="h-full">
-                  <CardContent className="pt-8">
-                    <Quote className="h-8 w-8 text-accent/30 mb-4" />
-                    <p className="text-foreground mb-6 leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
-                    <div className="flex items-center gap-4">
+                  <CardContent className="pt-6 sm:pt-8">
+                    <Quote className="h-6 w-6 sm:h-8 sm:w-8 text-accent/30 mb-3 sm:mb-4" />
+                    <p className="text-foreground mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">&ldquo;{testimonial.quote}&rdquo;</p>
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <img
                         src={testimonial.avatar}
                         alt={testimonial.author}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                       />
                       <div>
-                        <div className="font-semibold">{testimonial.author}</div>
-                        <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                        <div className="text-xs text-accent font-medium mt-1">{testimonial.investment}</div>
+                        <div className="font-semibold text-sm sm:text-base">{testimonial.author}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{testimonial.role}</div>
+                        <div className="text-[10px] sm:text-xs text-accent font-medium mt-0.5 sm:mt-1">{testimonial.investment}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -735,17 +724,17 @@ export default function LandingPage() {
       </section>
 
       {/* Section 11: Press / Partners */}
-      <section className="py-16 border-y">
+      <section className="py-10 sm:py-12 md:py-16 border-y">
         <div className="container mx-auto px-4">
-          <p className="text-center text-muted-foreground text-sm mb-8">Featured in leading publications</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+          <p className="text-center text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8">Featured in leading publications</p>
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-16">
             {partners.map((partner) => (
               <motion.div
                 key={partner}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-2xl font-display font-bold text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-pointer"
+                className="text-lg sm:text-xl md:text-2xl font-display font-bold text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-pointer"
               >
                 {partner}
               </motion.div>
@@ -755,7 +744,7 @@ export default function LandingPage() {
       </section>
 
       {/* Section 12: CTA */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptMCAwdi02aC02djZoNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
 
@@ -765,26 +754,26 @@ export default function LandingPage() {
           viewport={{ once: true }}
           className="container mx-auto px-4 text-center relative z-10"
         >
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-primary-foreground mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold text-primary-foreground mb-4 sm:mb-6 px-4">
             Ready to Start Your Investment Journey?
           </h2>
-          <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-primary-foreground/80 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
             Join 12,000+ investors already building their future with CrowdFund
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Link to="/auth/register">
-              <Button variant="hero" size="xl" className="gap-2">
+              <Button variant="hero" size="lg" className="gap-2 w-full sm:w-auto">
                 Create Free Account
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
             <Link to="/projects">
-              <Button variant="hero-outline" size="xl">
+              <Button variant="hero-outline" size="lg" className="w-full sm:w-auto">
                 Browse Projects
               </Button>
             </Link>
           </div>
-          <p className="text-primary-foreground/60 text-sm mt-6">
+          <p className="text-primary-foreground/60 text-xs sm:text-sm mt-4 sm:mt-6 px-4">
             No credit card required • Free to join • Start investing in minutes
           </p>
         </motion.div>

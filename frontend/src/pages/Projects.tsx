@@ -222,18 +222,18 @@ export default function ProjectsPage() {
 
 
       {/* Header */}
-      <div className="bg-muted/30 border-b py-8">
+      <div className="bg-muted/30 border-b py-6 sm:py-8">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-display font-bold mb-2">Browse Projects</h1>
-          <p className="text-muted-foreground">Discover innovative projects and invest in the future</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1 sm:mb-2">Browse Projects</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Discover innovative projects and invest in the future</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="sticky top-16 z-40 bg-background border-b py-4">
+      <div className="sticky top-16 z-40 bg-background border-b py-3 sm:py-4">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="flex flex-1 gap-4 w-full lg:w-auto">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-1 gap-2 sm:gap-4 w-full lg:w-auto">
               <SearchBar
                 value={search}
                 onChange={setSearch}
@@ -242,20 +242,21 @@ export default function ProjectsPage() {
               />
               <Button
                 variant="outline"
-                className="lg:hidden"
+                size="sm"
+                className="lg:hidden shrink-0"
                 onClick={() => setShowFilters(!showFilters)}
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
+                <Filter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Filters</span>
               </Button>
             </div>
 
             <div className={cn(
-              "flex flex-wrap gap-4 items-center w-full lg:w-auto",
+              "flex flex-wrap gap-2 sm:gap-4 items-center w-full lg:w-auto",
               !showFilters && "hidden lg:flex"
             )}>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,23 +267,23 @@ export default function ProjectsPage() {
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Input
                   placeholder="Min Value"
                   value={minValue}
                   onChange={(e) => setMinValue(e.target.value)}
-                  className="w-[120px]"
+                  className="w-full sm:w-[100px] md:w-[120px]"
                 />
                 <Input
                   placeholder="Max Value"
                   value={maxValue}
                   onChange={(e) => setMaxValue(e.target.value)}
-                  className="w-[120px]"
+                  className="w-full sm:w-[100px] md:w-[120px]"
                 />
               </div>
 
               <Select value={sort} onValueChange={(v) => setSort(v as ProjectSortOption)}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[140px] md:w-[160px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,12 +295,12 @@ export default function ProjectsPage() {
                 </SelectContent>
               </Select>
 
-              <div className="flex border rounded-lg">
+              <div className="flex border rounded-lg shrink-0">
                 <Button
                   variant={view === 'grid' ? 'default' : 'ghost'}
                   size="icon"
                   onClick={() => setView('grid')}
-                  className="rounded-r-none"
+                  className="rounded-r-none h-9 w-9"
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
@@ -307,7 +308,7 @@ export default function ProjectsPage() {
                   variant={view === 'list' ? 'default' : 'ghost'}
                   size="icon"
                   onClick={() => setView('list')}
-                  className="rounded-l-none"
+                  className="rounded-l-none h-9 w-9"
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -318,15 +319,15 @@ export default function ProjectsPage() {
       </div>
 
       {/* Results */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-muted-foreground">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {totalProjects} project{totalProjects !== 1 ? 's' : ''} found
           </p>
         </div>
 
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
               <Skeleton key={index} className="h-80 w-full rounded-xl" />
             ))}
@@ -334,7 +335,7 @@ export default function ProjectsPage() {
         ) : projects.length === 0 ? (
           <EmptySearch query={search} />
         ) : view === 'grid' ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {projects.map((project, i) => (
               <motion.div
                 key={project.id}
