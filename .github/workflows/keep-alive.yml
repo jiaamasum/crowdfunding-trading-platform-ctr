@@ -19,7 +19,7 @@ jobs:
           
           if [ -z "$BACKEND_URL" ]; then
             echo "BACKEND_URL secret not set, using default"
-            BACKEND_URL="https://your-backend.onrender.com"
+            BACKEND_URL="https://cfp-backend-y13q.onrender.com"
           fi
           
           # Ping health endpoint
@@ -42,7 +42,7 @@ jobs:
           
           if [ -z "$FRONTEND_URL" ]; then
             echo "FRONTEND_URL secret not set, using default"
-            FRONTEND_URL="https://cfp-frontend.vercel.app"
+            FRONTEND_URL="https://cfp-frontend-rho.vercel.app/projects"
           fi
           
           response=$(curl -s -o /dev/null -w "%{http_code}" "$FRONTEND_URL" --max-time 30 || echo "000")
