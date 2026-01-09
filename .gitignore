@@ -34,3 +34,4 @@ pytest_debug.log
 *_debug.log
 *.log
 .pytest_cache/
+frontend/.vercel/
