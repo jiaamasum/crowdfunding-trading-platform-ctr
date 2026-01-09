@@ -1,0 +1,21 @@
+# Backend (not needed for frontend deployment)
+backend/
+env/
+htmlcov/
+docs/
+docker/
+
+# Git
+.git/
+
+# Docker files
+Dockerfile.super
+docker-compose*.yml
+docker-build-run.sh
+
+# Misc
+*.sqlite3
+*.pyc
+__pycache__/
+.coverage
+*.log
