@@ -1,0 +1,50 @@
+# =============================================================================
+# Render Blueprint - Backend Deployment
+# =============================================================================
+# This file configures automatic deployment on Render.com
+#
+# Deploy: Connect your GitHub repo to Render and it will auto-detect this file
+# Manual: render deploy
+# =============================================================================
+
+services:
+  # Django Backend API
+  - type: web
+    name: cfp-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: singapore  # Closest to your location (change if needed)
+    plan: free  # Options: free, starter, standard, pro
+    
+    # Health check
+    healthCheckPath: /api/health/
+    
+    # Environment variables
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true  # Render generates a secure random value
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost"
+      - key: DATABASE_URL
+        value: "postgresql://postgres.imgobmwecavdxxbrnikv:JsFKf2Q0nXEmAgg3@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
+      - key: SUPABASE_URL
+        value: "https://imgobmwecavdxxbrnikv.supabase.co"
+      - key: SUPABASE_JWT_SECRET
+        value: "/oTIIvaUfXWtZyhGMm+iBQWdNquPsTxZLO1+JHIWNAVR3+pCiGTXhO9nbRVhRl7HJVP10765e6yYC42dPnu0ug=="
+      - key: SUPABASE_ANON_KEY
+        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltZ29ibXdlY2F2ZHh4YnJuaWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1NTkxMTQsImV4cCI6MjA4MjEzNTExNH0.jRiMuLAFZejfRuCgEpNW93BtRQhw2l66KysS0cGv15Y"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltZ29ibXdlY2F2ZHh4YnJuaWt2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjU1OTExNCwiZXhwIjoyMDgyMTM1MTE0fQ.VtHBbFCqoJickX0qN_rOIpzbKy-knCuGloRtN8LY5Jg"
+      - key: SUPABASE_STORAGE_BUCKET_MEDIA
+        value: "project-media"
+      - key: SUPABASE_STORAGE_BUCKET_3D
+        value: "project-3d"
+      - key: SUPABASE_STORAGE_BUCKET_PROFILE
+        value: "users-profile-image"
+      - key: FRONTEND_URL
+        sync: false  # Will be set after Vercel deployment
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false  # Will be set after Vercel deployment
