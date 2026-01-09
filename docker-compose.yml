@@ -1,0 +1,141 @@
+# =============================================================================
+# Docker Compose Configuration for CrowdFunding Platform
+# =============================================================================
+# This file orchestrates all services for development and production
+#
+# Usage:
+#   Development:  docker-compose up -d
+#   Production:   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Build:        docker-compose build
+#   Logs:         docker-compose logs -f [service]
+#   Stop:         docker-compose down
+#   Clean:        docker-compose down -v --rmi all
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Backend Service (Django API)
+  # ===========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: cfp-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/cfp_db
+    volumes:
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
+      - backend_logs:/app/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cfp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================================================
+  # Frontend Service (React/Vite with Nginx)
+  # ===========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - VITE_API_URL=http://localhost:8000
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    container_name: cfp-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - cfp-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===========================================================================
+  # Database Service (PostgreSQL)
+  # ===========================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: cfp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cfp_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cfp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cfp_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ===========================================================================
+  # Redis Service (Optional - for caching/Celery)
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: cfp-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - cfp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  cfp-network:
+    driver: bridge
+    name: cfp-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: cfp-postgres-data
+  redis_data:
+    name: cfp-redis-data
+  backend_static:
+    name: cfp-backend-static
+  backend_media:
+    name: cfp-backend-media
+  backend_logs:
+    name: cfp-backend-logs

@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Sum
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from projects.models import Project
@@ -18,6 +18,16 @@ from access_requests.models import AccessRequest
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 User = get_user_model()
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint for Docker/Kubernetes probes."""
+    return Response({
+        'status': 'healthy',
+        'service': 'cfp-backend',
+    })
 
 
 @api_view(['GET'])
@@ -92,6 +102,9 @@ def dashboard_stats(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Health check for Docker/Kubernetes
+    path('api/health/', health_check, name='health-check'),
     
     # API routes
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -1,0 +1,126 @@
+# =============================================================================
+# Super Dockerfile - Combined Frontend + Backend
+# =============================================================================
+# Single container running both Django backend and React frontend
+# Includes: Python 3.12, Node 20, Nginx, Supervisor
+#
+# Build: docker build -f Dockerfile.super -t cfp-mvp .
+# Run:   docker run -p 8080:80 -p 8000:8000 cfp-mvp
+# =============================================================================
+
+# ============================================
+# Stage 1: Frontend Builder
+# ============================================
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Copy frontend package files
+COPY frontend/package.json frontend/bun.lockb* frontend/package-lock.json* ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy frontend source
+COPY frontend/ .
+
+# Build with production environment variables
+ENV VITE_API_URL="http://127.0.0.1:8000/api"
+ENV VITE_API_BASE_URL="http://127.0.0.1:8000/api"
+ENV VITE_FRONTEND_URL="http://127.0.0.1:8080"
+
+# Build the frontend
+RUN npm run build
+
+
+# ============================================
+# Stage 2: Backend Builder
+# ============================================
+FROM python:3.12-slim AS backend-builder
+
+WORKDIR /backend
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY backend/requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
+
+
+# ============================================
+# Stage 3: Production Runtime
+# ============================================
+FROM python:3.12-slim AS production
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    APP_HOME=/app
+
+WORKDIR ${APP_HOME}
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    nginx \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies from wheels
+COPY --from=backend-builder /wheels /wheels
+COPY --from=backend-builder /backend/requirements.txt .
+RUN pip install --no-cache-dir /wheels/* \
+    && pip install --no-cache-dir gunicorn \
+    && rm -rf /wheels
+
+# Copy backend application
+COPY backend/ ${APP_HOME}/backend/
+
+# Copy built frontend to nginx
+COPY --from=frontend-builder /frontend/dist /var/www/html
+
+# ============================================
+# Environment Variables (from actual .env)
+# ============================================
+ENV DEBUG=False
+ENV SECRET_KEY="sb_secret_oTFhTTp3OGz6aqjNcFJTTQ_rF2GGrCb"
+ENV ALLOWED_HOSTS="localhost,127.0.0.1,0.0.0.0"
+ENV DATABASE_URL="postgresql://postgres.imgobmwecavdxxbrnikv:JsFKf2Q0nXEmAgg3@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
+ENV SUPABASE_URL="https://imgobmwecavdxxbrnikv.supabase.co"
+ENV SUPABASE_JWT_SECRET="/oTIIvaUfXWtZyhGMm+iBQWdNquPsTxZLO1+JHIWNAVR3+pCiGTXhO9nbRVhRl7HJVP10765e6yYC42dPnu0ug=="
+ENV SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltZ29ibXdlY2F2ZHh4YnJuaWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1NTkxMTQsImV4cCI6MjA4MjEzNTExNH0.jRiMuLAFZejfRuCgEpNW93BtRQhw2l66KysS0cGv15Y"
+ENV SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltZ29ibXdlY2F2ZHh4YnJuaWt2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjU1OTExNCwiZXhwIjoyMDgyMTM1MTE0fQ.VtHBbFCqoJickX0qN_rOIpzbKy-knCuGloRtN8LY5Jg"
+ENV SUPABASE_STORAGE_BUCKET_MEDIA="project-media"
+ENV SUPABASE_STORAGE_BUCKET_3D="project-3d"
+ENV SUPABASE_STORAGE_BUCKET_PROFILE="users-profile-image"
+ENV FRONTEND_URL="http://localhost:8080"
+ENV CORS_ALLOWED_ORIGINS="http://localhost:8080,http://127.0.0.1:8080"
+
+# Create directories
+RUN mkdir -p ${APP_HOME}/backend/staticfiles \
+    ${APP_HOME}/backend/media \
+    ${APP_HOME}/backend/logs \
+    /var/log/supervisor
+
+# Copy configuration files
+COPY docker/nginx.super.conf /etc/nginx/nginx.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Collect static files
+WORKDIR ${APP_HOME}/backend
+RUN python manage.py collectstatic --noinput || true
+
+# Expose ports
+EXPOSE 80 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health/ && curl -f http://localhost:80/ || exit 1
+
+# Start supervisor (manages nginx + gunicorn)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

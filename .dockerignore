@@ -1,0 +1,59 @@
+# Git
+.git/
+.gitignore
+
+# Environment files (use docker-compose env_file instead)
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/
+*.md
+
+# Coverage reports
+htmlcov/
+coverage/
+*.coverage
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+env/
+venv/
+.venv/
+
+# Node modules (handled in service-specific .dockerignore)
+# But exclude from root context
+node_modules/
+
+# Build artifacts
+__pycache__/
+*.pyc
+*.pyo
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.nyc_output/
+
+# Local database
+*.sqlite3

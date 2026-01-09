@@ -1,0 +1,73 @@
+# =============================================================================
+# Docker Compose - Production Override
+# =============================================================================
+# This file overrides docker-compose.yml for production deployment
+#
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Backend Service (Production Optimized)
+  # ===========================================================================
+  backend:
+    restart: always
+    environment:
+      - DEBUG=False
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ===========================================================================
+  # Frontend Service (Production Optimized)
+  # ===========================================================================
+  frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ===========================================================================
+  # Database (Production Optimized)
+  # ===========================================================================
+  db:
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    # Don't expose port in production
+    ports: []
+
+  # ===========================================================================
+  # Redis (Production Optimized)
+  # ===========================================================================
+  redis:
+    restart: always
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Don't expose port in production
+    ports: []

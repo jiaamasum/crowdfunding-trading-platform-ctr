@@ -132,6 +132,42 @@ CORS_ALLOWED_ORIGINS = [
     for origin in CORS_ALLOWED_ORIGINS_RAW.split(',')
     if origin.strip()
 ]
+# CORS Security Settings
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with cross-origin requests
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight response for 24 hours
+
+
+# CSRF Protection Settings
+CSRF_COOKIE_SECURE = not DEBUG  # Only send cookie over HTTPS in production
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token for AJAX requests
+CSRF_COOKIE_SAMESITE = 'Lax'  # Lax allows top-level navigations with GET
+CSRF_USE_SESSIONS = False  # Store CSRF token in cookie (default)
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+# Trusted origins for CSRF (populated from FRONTEND_URL below)
 
 
 # REST Framework Settings
@@ -151,6 +187,15 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    # Rate Limiting: 10 requests/second per IP address
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/second',   # 10 requests/second for anonymous users (per IP)
+        'user': '10/second',   # 10 requests/second for authenticated users (per user)
+    },
 }
 
 
@@ -168,6 +213,21 @@ FRONTEND_URL = require_env('FRONTEND_URL')
 
 if not CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+
+# CSRF Trusted Origins (must include scheme)
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+if FRONTEND_URL and FRONTEND_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
+
+
+# Security Headers (for production)
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # JWT Settings

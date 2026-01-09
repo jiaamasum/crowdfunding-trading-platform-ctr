@@ -1,0 +1,52 @@
+# =============================================================================
+# Docker Compose - Development Override
+# =============================================================================
+# This file overrides docker-compose.yml for local development
+#
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Backend Service (Development Mode)
+  # ===========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/cfp_db
+    volumes:
+      # Mount source code for hot reload
+      - ./backend:/app
+      - /app/__pycache__
+    ports:
+      - "8000:8000"
+    # Use Django development server instead of gunicorn
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+  # ===========================================================================
+  # Frontend Service (Development Mode with Vite)
+  # ===========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      # Mount source code for hot reload
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+  # ===========================================================================
+  # Database (same as production)
+  # ===========================================================================
+  db:
+    ports:
+      - "5432:5432"
