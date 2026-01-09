@@ -41,8 +41,10 @@ db.sqlite3
 logs/
 *.log
 
-# Media (user uploads - should be in volume)
-media/
+# Media uploads (user uploads - should be in volume, but keep the app code)
+media/uploads/
+media/projects/
+media/profiles/
 
 # Static files (collected)
 staticfiles/
