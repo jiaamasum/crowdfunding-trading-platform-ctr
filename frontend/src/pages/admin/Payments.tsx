@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Search, 
+import {
+  Search,
   CreditCard,
   CheckCircle,
   XCircle
@@ -73,7 +73,7 @@ export default function AdminPayments() {
 
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.investorName.toLowerCase().includes(search.toLowerCase()) ||
-                          payment.transactionId.toLowerCase().includes(search.toLowerCase());
+      payment.transactionId.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -160,60 +160,62 @@ export default function AdminPayments() {
 
       {/* Payments Table */}
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Transaction ID</TableHead>
-              <TableHead>Investor</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPayments.map((payment, index) => (
-              <motion.tr
-                key={payment.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b"
-              >
-                <TableCell>
-                  <code className="text-xs bg-muted px-2 py-1 rounded">{payment.transactionId}</code>
-                </TableCell>
-                <TableCell>{payment.investorName}</TableCell>
-                <TableCell><Money amount={payment.amount} className="font-semibold" /></TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    {payment.paymentMethod}
-                  </div>
-                </TableCell>
-                <TableCell><StatusBadge status={payment.status} /></TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(payment.createdAt).toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    {payment.status === 'PENDING' && (
-                      <Button size="sm" variant="outline" onClick={() => openActionDialog(payment, 'refund')}>
-                        Refund
-                      </Button>
-                    )}
-                    {payment.status === 'SUCCESS' && (
-                      <Button size="sm" variant="outline" onClick={() => openActionDialog(payment, 'withdraw')}>
-                        Withdraw
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Transaction ID</TableHead>
+                <TableHead>Investor</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPayments.map((payment, index) => (
+                <motion.tr
+                  key={payment.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b"
+                >
+                  <TableCell>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">{payment.transactionId}</code>
+                  </TableCell>
+                  <TableCell>{payment.investorName}</TableCell>
+                  <TableCell><Money amount={payment.amount} className="font-semibold" /></TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      {payment.paymentMethod}
+                    </div>
+                  </TableCell>
+                  <TableCell><StatusBadge status={payment.status} /></TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(payment.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                      {payment.status === 'PENDING' && (
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => openActionDialog(payment, 'refund')}>
+                          Refund
+                        </Button>
+                      )}
+                      {payment.status === 'SUCCESS' && (
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => openActionDialog(payment, 'withdraw')}>
+                          Withdraw
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       <Dialog open={actionOpen} onOpenChange={setActionOpen}>

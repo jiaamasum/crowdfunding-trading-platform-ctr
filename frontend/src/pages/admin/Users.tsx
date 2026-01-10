@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Search, 
+import {
+  Search,
   Eye,
   Mail,
   Calendar,
@@ -54,7 +54,7 @@ export default function UsersPage() {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) ||
-                          user.email.toLowerCase().includes(search.toLowerCase());
+      user.email.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -162,72 +162,74 @@ export default function UsersPage() {
 
       {/* Users Table */}
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user, index) => (
-              <motion.tr
-                key={user.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b"
-              >
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback className={getRoleBadgeColor(user.role)}>
-                        {user.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user, index) => (
+                <motion.tr
+                  key={user.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b"
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback className={getRoleBadgeColor(user.role)}>
+                          {user.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getRoleBadgeColor(user.role)}>
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {user.isBanned ? (
-                    <Badge variant="destructive">
-                      <UserX className="h-3 w-3 mr-1" /> Banned
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getRoleBadgeColor(user.role)}>
+                      {user.role}
                     </Badge>
-                  ) : user.isVerified ? (
-                    <Badge variant="outline" className="text-success border-success">
-                      <ShieldCheck className="h-3 w-3 mr-1" /> Verified
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-warning border-warning">
-                      <UserX className="h-3 w-3 mr-1" /> Unverified
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Link to={`/app/admin/users/${user.id}`}>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4 mr-1" /> View
-                    </Button>
-                  </Link>
-                </TableCell>
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
+                  </TableCell>
+                  <TableCell>
+                    {user.isBanned ? (
+                      <Badge variant="destructive">
+                        <UserX className="h-3 w-3 mr-1" /> Banned
+                      </Badge>
+                    ) : user.isVerified ? (
+                      <Badge variant="outline" className="text-success border-success">
+                        <ShieldCheck className="h-3 w-3 mr-1" /> Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-warning border-warning">
+                        <UserX className="h-3 w-3 mr-1" /> Unverified
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Link to={`/app/admin/users/${user.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4 mr-1" /> View
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       {/* User Detail Dialog */}
@@ -280,7 +282,7 @@ export default function UsersPage() {
                 {getUserStats(selectedUser) && (
                   <>
                     <Separator />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="p-3 rounded-lg bg-muted text-center">
                         <p className="text-2xl font-bold">{getUserStats(selectedUser)?.value}</p>
                         <p className="text-sm text-muted-foreground">{getUserStats(selectedUser)?.label}</p>

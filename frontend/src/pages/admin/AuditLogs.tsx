@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Search, 
+import {
+  Search,
   Eye,
   ScrollText,
   User
@@ -83,7 +83,7 @@ export default function AuditLogs() {
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.actorName.toLowerCase().includes(search.toLowerCase()) ||
-                          log.actionType.toLowerCase().includes(search.toLowerCase());
+      log.actionType.toLowerCase().includes(search.toLowerCase());
     const matchesAction = actionFilter === 'all' || log.actionType === actionFilter;
     return matchesSearch && matchesAction;
   });
@@ -169,58 +169,60 @@ export default function AuditLogs() {
           </Card>
 
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Actor</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log, index) => (
-                  <motion.tr
-                    key={log.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-b"
-                  >
-                    <TableCell>
-                      <Badge className={actionTypeColors[log.actionType] || 'bg-muted text-foreground'}>
-                        {formatActionType(log.actionType)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-4 w-4 text-muted-foreground" />
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Actor</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map((log, index) => (
+                    <motion.tr
+                      key={log.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="border-b"
+                    >
+                      <TableCell>
+                        <Badge className={actionTypeColors[log.actionType] || 'bg-muted text-foreground'}>
+                          {formatActionType(log.actionType)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{log.actorName}</p>
+                            <p className="text-xs text-muted-foreground">{log.actorRole}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{log.actorName}</p>
-                          <p className="text-xs text-muted-foreground">{log.actorRole}</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {log.targetType}: {formatTarget(log)}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-muted-foreground">
-                        {log.targetType}: {formatTarget(log)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedLog(log)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedLog(log)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
 
@@ -267,42 +269,44 @@ export default function AuditLogs() {
           </Card>
 
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Entry</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Actor</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLedger.map((entry, index) => (
-                  <motion.tr
-                    key={entry.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-b"
-                  >
-                    <TableCell>
-                      <Badge className="bg-muted text-foreground">
-                        {formatActionType(entry.entryType)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">{entry.projectName} (#{entry.projectId})</span>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {entry.actorName || 'System'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {new Date(entry.createdAt).toLocaleString()}
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Entry</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Actor</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLedger.map((entry, index) => (
+                    <motion.tr
+                      key={entry.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="border-b"
+                    >
+                      <TableCell>
+                        <Badge className="bg-muted text-foreground">
+                          {formatActionType(entry.entryType)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{entry.projectName} (#{entry.projectId})</span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {entry.actorName || 'System'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(entry.createdAt).toLocaleString()}
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
@@ -322,7 +326,7 @@ export default function AuditLogs() {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Actor</p>
                     <p className="font-medium">{selectedLog.actorName}</p>

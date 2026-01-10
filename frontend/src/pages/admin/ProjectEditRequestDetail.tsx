@@ -225,7 +225,7 @@ export default function ProjectEditRequestDetail() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Request Summary</CardTitle>
           <Badge variant={editRequest.status === 'PENDING' ? 'secondary' : 'outline'}>
             {editRequest.status}
@@ -253,30 +253,32 @@ export default function ProjectEditRequestDetail() {
             <CardTitle>{group.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-48">Field</TableHead>
-                  <TableHead>Current</TableHead>
-                  <TableHead>Proposed</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {group.keys.map((key) => {
-                  const current = currentValueFor(key);
-                  const proposedRaw = getChangeValue(changes, key);
-                  const proposed = isChanged(changes, key) ? proposedRaw : current;
-                  const changed = isChanged(changes, key);
-                  return (
-                    <TableRow key={key} className={changed ? 'bg-accent/10' : undefined}>
-                      <TableCell className="font-medium">{key.replace(/_/g, ' ')}</TableCell>
-                      <TableCell>{formatValue(key, current)}</TableCell>
-                      <TableCell>{formatValue(key, proposed)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-48">Field</TableHead>
+                    <TableHead>Current</TableHead>
+                    <TableHead>Proposed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {group.keys.map((key) => {
+                    const current = currentValueFor(key);
+                    const proposedRaw = getChangeValue(changes, key);
+                    const proposed = isChanged(changes, key) ? proposedRaw : current;
+                    const changed = isChanged(changes, key);
+                    return (
+                      <TableRow key={key} className={changed ? 'bg-accent/10' : undefined}>
+                        <TableCell className="font-medium">{key.replace(/_/g, ' ')}</TableCell>
+                        <TableCell>{formatValue(key, current)}</TableCell>
+                        <TableCell>{formatValue(key, proposed)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       ))}

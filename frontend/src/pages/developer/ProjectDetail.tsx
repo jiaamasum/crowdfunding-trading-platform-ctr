@@ -109,16 +109,16 @@ export default function DeveloperProjectDetail() {
             <p className="text-muted-foreground">{project.shortDescription}</p>
           </div>
         </div>
-        <div className="flex gap-2 ml-12 lg:ml-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:ml-12 lg:ml-0">
           {canEdit && (
             <>
               <Link to={`/app/developer/projects/${id}/edit`}>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2 w-full sm:w-auto">
                   <Edit className="h-4 w-4" /> {isApproved ? 'Request Edit' : 'Edit'}
                 </Button>
               </Link>
               <Link to={`/app/developer/projects/${id}/media`}>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2 w-full sm:w-auto">
                   <Upload className="h-4 w-4" /> {isApproved ? 'Request Media Update' : 'Media'}
                 </Button>
               </Link>
@@ -126,7 +126,7 @@ export default function DeveloperProjectDetail() {
           )}
           {canSubmit && (
             <Link to={`/app/developer/projects/${id}/submit`}>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Send className="h-4 w-4" /> Submit for Review
               </Button>
             </Link>
@@ -169,7 +169,7 @@ export default function DeveloperProjectDetail() {
                     {stat.isMoney ? (
                       <Money amount={stat.value as number} className="text-lg font-bold" />
                     ) : stat.isShares ? (
-                      <p className="text-lg font-bold whitespace-nowrap">
+                      <p className="text-lg font-bold break-words sm:whitespace-nowrap">
                         {(stat.value as number).toLocaleString()}
                         <span className="text-sm font-normal text-muted-foreground">/{stat.subValue?.toLocaleString()}</span>
                       </p>
@@ -370,7 +370,7 @@ export default function DeveloperProjectDetail() {
 
         <TabsContent value="media" className="mt-6">
           <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>Project Media</CardTitle>
               {canEdit && (
                 <Link to={`/app/developer/projects/${id}/edit`}>

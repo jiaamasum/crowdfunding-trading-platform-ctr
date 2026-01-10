@@ -16,8 +16,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { 
-  ChevronLeft, Mail, Calendar, ShieldCheck, UserX, TrendingUp, 
+import {
+  ChevronLeft, Mail, Calendar, ShieldCheck, UserX, TrendingUp,
   Wallet, FolderOpen, Receipt, Eye, Building2, Ban, UserCheck
 } from 'lucide-react';
 import { projectsApi } from '@/lib/projectsApi';
@@ -242,7 +242,7 @@ export default function UserDetailPage() {
                   </Badge>
                 )}
               </div>
-              <div className="flex gap-2 ml-auto">
+              <div className="flex flex-col gap-2 w-full sm:w-auto sm:ml-auto sm:flex-row">
                 {user.role !== 'ADMIN' && (
                   user.isBanned ? (
                     <Button variant="outline" onClick={() => setShowUnbanDialog(true)}>
@@ -396,76 +396,78 @@ export default function UserDetailPage() {
               />
             ) : (
               <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Shares</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Active</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {investments.map((investment) => {
-                      const project = getProjectById(investment.projectId);
-                      const canRefund = investment.status === 'APPROVED' || investment.status === 'PROCESSING';
-                      const canWithdraw = investment.status === 'COMPLETED';
-                      return (
-                        <TableRow key={investment.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              {project?.thumbnailUrl && (
-                                <MediaImage 
-                                  src={project.thumbnailUrl} 
-                                  alt={project.title}
-                                  className="w-10 h-10 rounded-lg object-cover"
-                                />
-                              )}
-                              <span className="font-medium">{investment.projectTitle}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{investment.shares.toLocaleString()}</TableCell>
-                          <TableCell><Money amount={investment.totalAmount} /></TableCell>
-                          <TableCell><StatusBadge status={investment.status} /></TableCell>
-                          <TableCell><StatusBadge status={investment.activityStatus || ((investment.isActive ?? investment.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {new Date(investment.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Link to={`/projects/${investment.projectId}`}>
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              {canRefund && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openInvestmentAction(investment, 'refund')}
-                                >
-                                  Refund
-                                </Button>
-                              )}
-                              {canWithdraw && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openInvestmentAction(investment, 'withdraw')}
-                                >
-                                  Withdraw
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Shares</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Active</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {investments.map((investment) => {
+                        const project = getProjectById(investment.projectId);
+                        const canRefund = investment.status === 'APPROVED' || investment.status === 'PROCESSING';
+                        const canWithdraw = investment.status === 'COMPLETED';
+                        return (
+                          <TableRow key={investment.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {project?.thumbnailUrl && (
+                                  <MediaImage
+                                    src={project.thumbnailUrl}
+                                    alt={project.title}
+                                    className="w-10 h-10 rounded-lg object-cover"
+                                  />
+                                )}
+                                <span className="font-medium">{investment.projectTitle}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{investment.shares.toLocaleString()}</TableCell>
+                            <TableCell><Money amount={investment.totalAmount} /></TableCell>
+                            <TableCell><StatusBadge status={investment.status} /></TableCell>
+                            <TableCell><StatusBadge status={investment.activityStatus || ((investment.isActive ?? investment.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {new Date(investment.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Link to={`/projects/${investment.projectId}`}>
+                                  <Button variant="ghost" size="sm">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                {canRefund && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openInvestmentAction(investment, 'refund')}
+                                  >
+                                    Refund
+                                  </Button>
+                                )}
+                                {canWithdraw && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openInvestmentAction(investment, 'withdraw')}
+                                  >
+                                    Withdraw
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
           </TabsContent>
@@ -479,34 +481,36 @@ export default function UserDetailPage() {
               />
             ) : (
               <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Requested</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {accessRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell className="font-medium">{request.project_title || '-'}</TableCell>
-                        <TableCell><StatusBadge status={request.status} /></TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {request.created_at ? new Date(request.created_at).toLocaleDateString() : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Link to={`/projects/${request.project}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Requested</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {accessRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell className="font-medium">{request.project_title || '-'}</TableCell>
+                          <TableCell><StatusBadge status={request.status} /></TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {request.created_at ? new Date(request.created_at).toLocaleDateString() : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Link to={`/projects/${request.project}`}>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
           </TabsContent>
@@ -528,48 +532,50 @@ export default function UserDetailPage() {
                 description="This developer hasn't created any projects yet"
               />
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Funded</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {projects.map((project) => (
-                    <TableRow key={project.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {project.thumbnailUrl && (
-                            <MediaImage 
-                              src={project.thumbnailUrl} 
-                              alt={project.title}
-                              className="w-10 h-10 rounded-lg object-cover"
-                            />
-                          )}
-                          <div>
-                            <p className="font-medium">{project.title}</p>
-                            <p className="text-xs text-muted-foreground">{project.category}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell><StatusBadge status={project.status} /></TableCell>
-                      <TableCell><Money amount={project.totalValue} /></TableCell>
-                      <TableCell>{project.fundingProgress.toFixed(1)}%</TableCell>
-                      <TableCell>
-                        <Link to={`/projects/${project.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Funded</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {projects.map((project) => (
+                      <TableRow key={project.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {project.thumbnailUrl && (
+                              <MediaImage
+                                src={project.thumbnailUrl}
+                                alt={project.title}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium">{project.title}</p>
+                              <p className="text-xs text-muted-foreground">{project.category}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell><StatusBadge status={project.status} /></TableCell>
+                        <TableCell><Money amount={project.totalValue} /></TableCell>
+                        <TableCell>{project.fundingProgress.toFixed(1)}%</TableCell>
+                        <TableCell>
+                          <Link to={`/projects/${project.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

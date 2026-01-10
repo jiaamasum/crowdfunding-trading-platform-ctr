@@ -264,7 +264,7 @@ export default function InvestorDashboard() {
       <div className="grid md:grid-cols-3 gap-4 mt-6">
         <Link to="/app/investor/favorites">
           <Card className="hover:shadow-soft-lg transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center justify-between">
+            <CardContent className="pt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
                   <Heart className="h-5 w-5 text-destructive" />
@@ -280,7 +280,7 @@ export default function InvestorDashboard() {
         </Link>
         <Link to="/app/investor/compare">
           <Card className="hover:shadow-soft-lg transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center justify-between">
+            <CardContent className="pt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
                   <GitCompare className="h-5 w-5 text-accent" />
@@ -296,7 +296,7 @@ export default function InvestorDashboard() {
         </Link>
         <Link to="/app/investor/projects">
           <Card className="hover:shadow-soft-lg transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center justify-between">
+            <CardContent className="pt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-highlight/10 flex items-center justify-center">
                   <FolderOpen className="h-5 w-5 text-highlight" />
@@ -314,7 +314,7 @@ export default function InvestorDashboard() {
 
       {/* Recent Investments */}
       <Card className="mt-6">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Recent Investments</CardTitle>
           <Link to="/app/investor/investments">
             <Button variant="ghost" size="sm">View All <ChevronRight className="h-4 w-4 ml-1" /></Button>
@@ -324,12 +324,12 @@ export default function InvestorDashboard() {
           {investments.length > 0 ? (
             <div className="space-y-4">
               {investments.slice(0, 3).map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                <div key={inv.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg bg-muted/50">
                   <div>
                     <p className="font-medium">{inv.projectTitle}</p>
                     <p className="text-sm text-muted-foreground">{inv.shares} shares @ <Money amount={inv.pricePerShare} /></p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <Money amount={inv.totalAmount} className="font-semibold" />
                     <p className="text-xs text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</p>
                   </div>

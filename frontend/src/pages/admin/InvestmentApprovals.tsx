@@ -164,76 +164,79 @@ export default function AdminInvestmentApprovals() {
         />
       ) : (
         <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Investor</TableHead>
-                <TableHead>Shares</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Paid At</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvestments.map((inv, index) => {
-                const payment = paymentLookup.get(inv.id);
-                return (
-                  <motion.tr
-                    key={inv.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-b"
-                  >
-                    <TableCell className="font-medium">{inv.projectTitle}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{inv.investorName}</p>
-                        <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                    <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
-                    <TableCell>
-                      {payment ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Investor</TableHead>
+                  <TableHead>Shares</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Paid At</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvestments.map((inv, index) => {
+                  const payment = paymentLookup.get(inv.id);
+                  return (
+                    <motion.tr
+                      key={inv.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="border-b"
+                    >
+                      <TableCell className="font-medium">{inv.projectTitle}</TableCell>
+                      <TableCell>
                         <div>
-                          <p className="text-sm font-medium">{payment.paymentMethod || 'card'}</p>
-                          <p className="text-xs text-muted-foreground">{payment.transactionId}</p>
-                          <p className="text-xs text-muted-foreground">{payment.status}</p>
+                          <p className="font-medium">{inv.investorName}</p>
+                          <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {payment?.processedAt || payment?.createdAt
-                        ? new Date(payment.processedAt || payment.createdAt).toLocaleDateString()
-                        : '—'}
-                    </TableCell>
-                    <TableCell><StatusBadge status={inv.status} /></TableCell>
-                    <TableCell>
-                      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                        <Button size="sm" onClick={() => handleApprove(inv)} disabled={isSubmitting}>
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRejectOpen(inv)}
-                          disabled={isSubmitting}
-                        >
-                          Reject
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </motion.tr>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                      <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
+                      <TableCell>
+                        {payment ? (
+                          <div>
+                            <p className="text-sm font-medium">{payment.paymentMethod || 'card'}</p>
+                            <p className="text-xs text-muted-foreground">{payment.transactionId}</p>
+                            <p className="text-xs text-muted-foreground">{payment.status}</p>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {payment?.processedAt || payment?.createdAt
+                          ? new Date(payment.processedAt || payment.createdAt).toLocaleDateString()
+                          : '—'}
+                      </TableCell>
+                      <TableCell><StatusBadge status={inv.status} /></TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                          <Button size="sm" className="w-full sm:w-auto" onClick={() => handleApprove(inv)} disabled={isSubmitting}>
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={() => handleRejectOpen(inv)}
+                            disabled={isSubmitting}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       )}
 

@@ -134,65 +134,67 @@ export default function InvestorRequestsPage() {
             />
           ) : (
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Shares</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Requested</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Notes</TableHead>
-                    <TableHead className="w-32">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {investmentRequests.map((inv, index) => {
-                    const canRevoke = inv.status === 'REQUESTED' || inv.status === 'APPROVED';
-                    const expiresAt = inv.approvalExpiresAt ? new Date(inv.approvalExpiresAt).toLocaleDateString() : '—';
-                    return (
-                      <motion.tr
-                        key={inv.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.03 }}
-                        className="border-b"
-                      >
-                        <TableCell className="font-medium">{inv.projectTitle}</TableCell>
-                        <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                        <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
-                        <TableCell><StatusBadge status={inv.status} /></TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(inv.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {inv.status === 'APPROVED' ? expiresAt : '—'}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[240px] break-words">
-                          <div className="space-y-1">
-                            <p>{inv.requestNote || 'No request note'}</p>
-                            {inv.adminNote && (
-                              <p className="text-foreground/80">Admin: {inv.adminNote}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setRevokeTarget(inv)}
-                            disabled={!canRevoke || isRevoking}
-                            className={canRevoke ? 'text-destructive' : ''}
-                          >
-                            Revoke
-                          </Button>
-                        </TableCell>
-                      </motion.tr>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Shares</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Requested</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="w-32">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investmentRequests.map((inv, index) => {
+                      const canRevoke = inv.status === 'REQUESTED' || inv.status === 'APPROVED';
+                      const expiresAt = inv.approvalExpiresAt ? new Date(inv.approvalExpiresAt).toLocaleDateString() : '—';
+                      return (
+                        <motion.tr
+                          key={inv.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          className="border-b"
+                        >
+                          <TableCell className="font-medium">{inv.projectTitle}</TableCell>
+                          <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                          <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
+                          <TableCell><StatusBadge status={inv.status} /></TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(inv.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {inv.status === 'APPROVED' ? expiresAt : '—'}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[240px] break-words">
+                            <div className="space-y-1">
+                              <p>{inv.requestNote || 'No request note'}</p>
+                              {inv.adminNote && (
+                                <p className="text-foreground/80">Admin: {inv.adminNote}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setRevokeTarget(inv)}
+                              disabled={!canRevoke || isRevoking}
+                              className={canRevoke ? 'text-destructive' : ''}
+                            >
+                              Revoke
+                            </Button>
+                          </TableCell>
+                        </motion.tr>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
           )}
         </TabsContent>
@@ -208,60 +210,62 @@ export default function InvestorRequestsPage() {
             />
           ) : (
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Requested</TableHead>
-                    <TableHead>Notes</TableHead>
-                    <TableHead className="w-32">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedAccessRequests.map((req, index) => {
-                    const canRevoke = req.status === 'PENDING';
-                    return (
-                      <motion.tr
-                        key={req.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.03 }}
-                        className="border-b"
-                      >
-                        <TableCell className="font-medium">{req.project_title || '—'}</TableCell>
-                        <TableCell><StatusBadge status={req.status} /></TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {req.created_at ? new Date(req.created_at).toLocaleDateString() : '—'}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[240px] break-words">
-                          <div className="space-y-1">
-                            <p>{req.message || 'No request note'}</p>
-                            {req.admin_note && (
-                              <p className="text-foreground/80">Admin: {req.admin_note}</p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Requested</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="w-32">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedAccessRequests.map((req, index) => {
+                      const canRevoke = req.status === 'PENDING';
+                      return (
+                        <motion.tr
+                          key={req.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          className="border-b"
+                        >
+                          <TableCell className="font-medium">{req.project_title || '—'}</TableCell>
+                          <TableCell><StatusBadge status={req.status} /></TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {req.created_at ? new Date(req.created_at).toLocaleDateString() : '—'}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[240px] break-words">
+                            <div className="space-y-1">
+                              <p>{req.message || 'No request note'}</p>
+                              {req.admin_note && (
+                                <p className="text-foreground/80">Admin: {req.admin_note}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {canRevoke ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setRevokeAccessTarget(req)}
+                                disabled={isRevoking}
+                                className="text-destructive"
+                              >
+                                Revoke
+                              </Button>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
                             )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {canRevoke ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setRevokeAccessTarget(req)}
-                              disabled={isRevoking}
-                              className="text-destructive"
-                            >
-                              Revoke
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                      </motion.tr>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          </TableCell>
+                        </motion.tr>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
           )}
         </TabsContent>

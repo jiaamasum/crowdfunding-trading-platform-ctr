@@ -239,7 +239,7 @@ export default function ProjectReviewPage() {
                 </CardHeader>
                 <CardContent>
                   {project.images.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {project.images.map((img, i) => (
                         <div key={i} className="aspect-video rounded-lg overflow-hidden">
                           <MediaImage src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />

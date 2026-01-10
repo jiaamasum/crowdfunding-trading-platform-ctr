@@ -44,7 +44,7 @@ export function ImageCarousel({
   }[aspectRatio];
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("w-full min-w-0 space-y-3", className)}>
       {/* Main Image */}
       <div className={cn("relative rounded-xl overflow-hidden bg-muted group", aspectClass)}>
         <MediaImage
@@ -109,7 +109,7 @@ export function ImageCarousel({
 
       {/* Thumbnails */}
       {showThumbnails && images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 max-w-full">
           {images.map((img, index) => (
             <button
               key={index}

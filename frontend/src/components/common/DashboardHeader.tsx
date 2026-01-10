@@ -89,7 +89,7 @@ export default function DashboardHeader({
         position === 'fixed' ? "fixed top-0 left-0 right-0" : "sticky top-0"
       )}
     >
-      <div className={cn("flex items-center gap-4 w-full", useContainer ? "container mx-auto px-4" : "px-4 lg:px-6")}>
+      <div className={cn("flex items-center gap-4 w-full min-w-0", useContainer ? "container mx-auto px-4" : "px-4 lg:px-6")}>
         {onMenuClick && (
           <Button
             variant="ghost"
@@ -198,8 +198,12 @@ export default function DashboardHeader({
         ) : (
           <div className="flex items-center gap-1.5 sm:gap-3">
             {showThemeToggle && <ThemeToggle />}
-            <Link to="/auth/login"><Button variant="ghost" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm">Sign In</Button></Link>
-            <Link to="/auth/register"><Button variant="highlight" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">Get Started</Button></Link>
+            <Link to="/auth/login" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm">Sign In</Button>
+            </Link>
+            <Link to="/auth/register" className="hidden sm:inline-flex">
+              <Button variant="highlight" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">Get Started</Button>
+            </Link>
           </div>
         )}
         

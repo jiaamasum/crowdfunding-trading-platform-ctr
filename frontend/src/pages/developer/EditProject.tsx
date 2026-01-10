@@ -526,7 +526,7 @@ export default function EditProjectPage() {
                   control={form.control}
                   name="hasRestrictedFields"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Enable Restricted Data</FormLabel>
                         <FormDescription>
@@ -608,7 +608,7 @@ export default function EditProjectPage() {
                   control={form.control}
                   name="has3DModel"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Has 3D Model</FormLabel>
                         <FormDescription>Does this project include a 3D model?</FormDescription>
@@ -625,7 +625,7 @@ export default function EditProjectPage() {
                     control={form.control}
                     name="is3DPublic"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Public 3D Model</FormLabel>
                           <FormDescription>

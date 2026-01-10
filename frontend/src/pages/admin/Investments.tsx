@@ -295,112 +295,116 @@ export default function AdminInvestments() {
 
         <TabsContent value="projects" className="mt-6">
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Investors</TableHead>
-                  <TableHead>Active</TableHead>
-                  <TableHead>Withdrawn</TableHead>
-                  <TableHead>Shares</TableHead>
-                  <TableHead>Total Invested</TableHead>
-                  <TableHead>Active Amount</TableHead>
-                  <TableHead>Withdrawn Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Investment</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projectGroups.map((project, index) => (
-                  <motion.tr
-                    key={project.projectId}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-b"
-                  >
-                    <TableCell>
-                      <span className="font-medium">{project.projectTitle}</span>
-                    </TableCell>
-                    <TableCell>{project.investorCount}</TableCell>
-                    <TableCell>{project.activeCount}</TableCell>
-                    <TableCell>{project.withdrawnCount}</TableCell>
-                    <TableCell>{project.totalShares.toLocaleString()}</TableCell>
-                    <TableCell><Money amount={project.totalAmount} className="font-semibold" /></TableCell>
-                    <TableCell><Money amount={project.activeAmount} /></TableCell>
-                    <TableCell><Money amount={project.withdrawnAmount} /></TableCell>
-                    <TableCell>
-                      {project.latestStatus ? <StatusBadge status={project.latestStatus} /> : '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {project.latestDate ? new Date(project.latestDate).toLocaleDateString() : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Link to={`/app/admin/investments/projects/${project.projectId}`}>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </Link>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Investors</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead>Withdrawn</TableHead>
+                    <TableHead>Shares</TableHead>
+                    <TableHead>Total Invested</TableHead>
+                    <TableHead>Active Amount</TableHead>
+                    <TableHead>Withdrawn Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Investment</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projectGroups.map((project, index) => (
+                    <motion.tr
+                      key={project.projectId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="border-b"
+                    >
+                      <TableCell>
+                        <span className="font-medium">{project.projectTitle}</span>
+                      </TableCell>
+                      <TableCell>{project.investorCount}</TableCell>
+                      <TableCell>{project.activeCount}</TableCell>
+                      <TableCell>{project.withdrawnCount}</TableCell>
+                      <TableCell>{project.totalShares.toLocaleString()}</TableCell>
+                      <TableCell><Money amount={project.totalAmount} className="font-semibold" /></TableCell>
+                      <TableCell><Money amount={project.activeAmount} /></TableCell>
+                      <TableCell><Money amount={project.withdrawnAmount} /></TableCell>
+                      <TableCell>
+                        {project.latestStatus ? <StatusBadge status={project.latestStatus} /> : '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {project.latestDate ? new Date(project.latestDate).toLocaleDateString() : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/app/admin/investments/projects/${project.projectId}`}>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </Link>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Investor</TableHead>
-                  <TableHead>Investments</TableHead>
-                  <TableHead>Active</TableHead>
-                  <TableHead>Withdrawn</TableHead>
-                  <TableHead>Total Invested</TableHead>
-                  <TableHead>Active Amount</TableHead>
-                  <TableHead>Withdrawn Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Investment</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userGroups.map((user, index) => (
-                  <motion.tr
-                    key={user.investorId}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-b"
-                  >
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{user.investorName}</p>
-                        <p className="text-xs text-muted-foreground">{user.investorEmail}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.investmentCount}</TableCell>
-                    <TableCell>{user.activeCount}</TableCell>
-                    <TableCell>{user.withdrawnCount}</TableCell>
-                    <TableCell><Money amount={user.totalAmount} className="font-semibold" /></TableCell>
-                    <TableCell><Money amount={user.activeAmount} /></TableCell>
-                    <TableCell><Money amount={user.withdrawnAmount} /></TableCell>
-                    <TableCell>
-                      {user.latestStatus ? <StatusBadge status={user.latestStatus} /> : '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {user.latestDate ? new Date(user.latestDate).toLocaleDateString() : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Link to={`/app/admin/users/${user.investorId}`}>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </Link>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Investor</TableHead>
+                    <TableHead>Investments</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead>Withdrawn</TableHead>
+                    <TableHead>Total Invested</TableHead>
+                    <TableHead>Active Amount</TableHead>
+                    <TableHead>Withdrawn Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Investment</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {userGroups.map((user, index) => (
+                    <motion.tr
+                      key={user.investorId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="border-b"
+                    >
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{user.investorName}</p>
+                          <p className="text-xs text-muted-foreground">{user.investorEmail}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.investmentCount}</TableCell>
+                      <TableCell>{user.activeCount}</TableCell>
+                      <TableCell>{user.withdrawnCount}</TableCell>
+                      <TableCell><Money amount={user.totalAmount} className="font-semibold" /></TableCell>
+                      <TableCell><Money amount={user.activeAmount} /></TableCell>
+                      <TableCell><Money amount={user.withdrawnAmount} /></TableCell>
+                      <TableCell>
+                        {user.latestStatus ? <StatusBadge status={user.latestStatus} /> : '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.latestDate ? new Date(user.latestDate).toLocaleDateString() : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Link to={`/app/admin/users/${user.investorId}`}>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </Link>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>

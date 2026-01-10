@@ -399,12 +399,12 @@ export default function CreateProject() {
 
               {/* Price Preview */}
               <div className="rounded-xl bg-gradient-to-r from-accent/10 to-primary/10 p-6 border border-accent/20">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Calculated Per Share Price</p>
                     <Money amount={perSharePrice} className="text-3xl font-bold text-accent" />
                   </div>
-                  <div className="text-right text-sm text-muted-foreground">
+                  <div className="text-left sm:text-right text-sm text-muted-foreground">
                     <p>Total Value: <Money amount={totalValue} className="font-medium text-foreground" /></p>
                     <p>Total Shares: <span className="font-medium text-foreground">{totalShares.toLocaleString()}</span></p>
                   </div>
@@ -525,7 +525,7 @@ export default function CreateProject() {
                 </div>
                 
                 {imagePreviews.length > 0 && (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative aspect-video rounded-lg overflow-hidden border">
                         <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
@@ -570,7 +570,7 @@ export default function CreateProject() {
                 </div>
 
                 {model3D && (
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border bg-muted/50">
                     <div className="flex items-center gap-2">
                       <Box className="h-5 w-5 text-primary" />
                       <span className="text-sm font-medium">{model3D.name}</span>
@@ -587,7 +587,7 @@ export default function CreateProject() {
                     control={form.control}
                     name="is3DPublic"
                     render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Public 3D Model</FormLabel>
                           <FormDescription>Make 3D model viewable by all users</FormDescription>
@@ -621,7 +621,7 @@ export default function CreateProject() {
                 control={form.control}
                 name="hasRestrictedFields"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Enable Restricted Data</FormLabel>
                       <FormDescription>Add confidential information that requires investor approval to view</FormDescription>

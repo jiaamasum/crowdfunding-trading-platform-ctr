@@ -174,88 +174,90 @@ export default function ReviewQueue() {
               />
             ) : (
               <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Developer</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Shares</TableHead>
-                      <TableHead>Submitted</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingProjects.map((project, index) => (
-                      <motion.tr
-                        key={project.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="border-b"
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {getPreviewImage(project) ? (
-                              <MediaImage
-                                src={getPreviewImage(project)}
-                                alt={project.title}
-                                className="w-12 h-12 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                                No image
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Developer</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead>Shares</TableHead>
+                        <TableHead>Submitted</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingProjects.map((project, index) => (
+                        <motion.tr
+                          key={project.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="border-b"
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {getPreviewImage(project) ? (
+                                <MediaImage
+                                  src={getPreviewImage(project)}
+                                  alt={project.title}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                                  No image
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium line-clamp-1">{project.title}</p>
+                                <p className="text-xs text-muted-foreground">{project.category}</p>
                               </div>
-                            )}
-                            <div>
-                              <p className="font-medium line-clamp-1">{project.title}</p>
-                              <p className="text-xs text-muted-foreground">{project.category}</p>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{project.developerName}</TableCell>
-                        <TableCell><Money amount={project.totalValue} /></TableCell>
-                        <TableCell>{project.totalShares.toLocaleString()}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {project.submittedAt ? new Date(project.submittedAt).toLocaleDateString() : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Link to={`/app/admin/projects/${project.id}/review`}>
-                              <Button variant="outline" size="sm" className="gap-1">
-                                <Eye className="h-4 w-4" /> Review
+                          </TableCell>
+                          <TableCell>{project.developerName}</TableCell>
+                          <TableCell><Money amount={project.totalValue} /></TableCell>
+                          <TableCell>{project.totalShares.toLocaleString()}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {project.submittedAt ? new Date(project.submittedAt).toLocaleDateString() : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              <Link to={`/app/admin/projects/${project.id}/review`}>
+                                <Button variant="outline" size="sm" className="gap-1">
+                                  <Eye className="h-4 w-4" /> Review
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-1 bg-success hover:bg-success/90"
+                                onClick={() => { setSelectedProject(project); setDecisionType('approve'); }}
+                              >
+                                <CheckCircle className="h-4 w-4" />
                               </Button>
-                            </Link>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="gap-1 bg-success hover:bg-success/90"
-                              onClick={() => { setSelectedProject(project); setDecisionType('approve'); }}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1 text-warning border-warning hover:bg-warning/10"
-                              onClick={() => { setSelectedProject(project); setDecisionType('needs_changes'); }}
-                            >
-                              <AlertCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
-                              onClick={() => { setSelectedProject(project); setDecisionType('reject'); }}
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </motion.tr>
-                    ))}
-                  </TableBody>
-                </Table>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 text-warning border-warning hover:bg-warning/10"
+                                onClick={() => { setSelectedProject(project); setDecisionType('needs_changes'); }}
+                              >
+                                <AlertCircle className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
+                                onClick={() => { setSelectedProject(project); setDecisionType('reject'); }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
 
@@ -270,34 +272,36 @@ export default function ReviewQueue() {
                 <CardHeader>
                   <CardTitle>Pending Edit Requests</CardTitle>
                 </CardHeader>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Developer</TableHead>
-                      <TableHead>Requested</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingEditRequests.map((req) => (
-                      <TableRow key={req.id}>
-                        <TableCell>{req.projectTitle}</TableCell>
-                        <TableCell>{req.requestedByName}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(req.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Link to={`/app/admin/projects/edit-requests/${req.id}`}>
-                            <Button variant="outline" size="sm" className="gap-1">
-                              <Eye className="h-4 w-4" /> Review
-                            </Button>
-                          </Link>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Developer</TableHead>
+                        <TableHead>Requested</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingEditRequests.map((req) => (
+                        <TableRow key={req.id}>
+                          <TableCell>{req.projectTitle}</TableCell>
+                          <TableCell>{req.requestedByName}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(req.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Link to={`/app/admin/projects/edit-requests/${req.id}`}>
+                              <Button variant="outline" size="sm" className="gap-1">
+                                <Eye className="h-4 w-4" /> Review
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
 
@@ -312,47 +316,49 @@ export default function ReviewQueue() {
                 <CardHeader>
                   <CardTitle>Pending Archive Requests</CardTitle>
                 </CardHeader>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Developer</TableHead>
-                      <TableHead>Requested</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingArchiveRequests.map((req) => (
-                      <TableRow key={req.id}>
-                        <TableCell>{req.projectTitle}</TableCell>
-                        <TableCell>{req.requestedByName}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(req.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="gap-1 bg-success hover:bg-success/90"
-                              onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('approve'); }}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
-                              onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('reject'); }}
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Developer</TableHead>
+                        <TableHead>Requested</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingArchiveRequests.map((req) => (
+                        <TableRow key={req.id}>
+                          <TableCell>{req.projectTitle}</TableCell>
+                          <TableCell>{req.requestedByName}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(req.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-1 bg-success hover:bg-success/90"
+                                onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('approve'); }}
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 text-destructive border-destructive hover:bg-destructive/10"
+                                onClick={() => { setSelectedArchiveRequest(req); setArchiveDecisionType('reject'); }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
           </div>
@@ -361,99 +367,105 @@ export default function ReviewQueue() {
         <TabsContent value="reviewed" className="mt-6">
           <div className="space-y-6">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Developer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reviewed</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewedProjects.map((project) => (
-                    <TableRow key={project.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {getPreviewImage(project) ? (
-                            <MediaImage
-                              src={getPreviewImage(project)}
-                              alt={project.title}
-                              className="w-10 h-10 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
-                              No image
-                            </div>
-                          )}
-                          <span className="font-medium">{project.title}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{project.developerName}</TableCell>
-                      <TableCell><StatusBadge status={project.status} /></TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {project.reviewedAt ? new Date(project.reviewedAt).toLocaleDateString() : '-'}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Developer</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reviewed</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {reviewedProjects.map((project) => (
+                      <TableRow key={project.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {getPreviewImage(project) ? (
+                              <MediaImage
+                                src={getPreviewImage(project)}
+                                alt={project.title}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
+                                No image
+                              </div>
+                            )}
+                            <span className="font-medium">{project.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{project.developerName}</TableCell>
+                        <TableCell><StatusBadge status={project.status} /></TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {project.reviewedAt ? new Date(project.reviewedAt).toLocaleDateString() : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle>Reviewed Edit Requests</CardTitle>
               </CardHeader>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Developer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reviewed</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewedEditRequests.map((req) => (
-                    <TableRow key={req.id}>
-                      <TableCell>{req.projectTitle}</TableCell>
-                      <TableCell>{req.requestedByName}</TableCell>
-                      <TableCell><StatusBadge status={req.status} /></TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {req.reviewedAt ? new Date(req.reviewedAt).toLocaleDateString() : '-'}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Developer</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reviewed</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {reviewedEditRequests.map((req) => (
+                      <TableRow key={req.id}>
+                        <TableCell>{req.projectTitle}</TableCell>
+                        <TableCell>{req.requestedByName}</TableCell>
+                        <TableCell><StatusBadge status={req.status} /></TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {req.reviewedAt ? new Date(req.reviewedAt).toLocaleDateString() : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle>Reviewed Archive Requests</CardTitle>
               </CardHeader>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Developer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reviewed</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewedArchiveRequests.map((req) => (
-                    <TableRow key={req.id}>
-                      <TableCell>{req.projectTitle}</TableCell>
-                      <TableCell>{req.requestedByName}</TableCell>
-                      <TableCell><StatusBadge status={req.status} /></TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {req.reviewedAt ? new Date(req.reviewedAt).toLocaleDateString() : '-'}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Developer</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reviewed</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {reviewedArchiveRequests.map((req) => (
+                      <TableRow key={req.id}>
+                        <TableCell>{req.projectTitle}</TableCell>
+                        <TableCell>{req.requestedByName}</TableCell>
+                        <TableCell><StatusBadge status={req.status} /></TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {req.reviewedAt ? new Date(req.reviewedAt).toLocaleDateString() : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
           </div>
         </TabsContent>

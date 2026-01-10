@@ -152,7 +152,7 @@ export default function InvestorLayout() {
 
       {/* Main content - offset for fixed sidebar */}
       <main className={cn(
-        "flex-1 flex flex-col min-h-screen transition-all duration-300",
+        "flex-1 flex flex-col min-h-screen min-w-0 w-full transition-all duration-300",
         sidebarOpen ? "lg:ml-64" : "lg:ml-20"
       )}>
         <DashboardHeader onMenuClick={() => setMobileOpen(true)} unreadCount={unreadCount} showThemeToggle />
@@ -171,7 +171,7 @@ export default function InvestorLayout() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="max-w-6xl mx-auto">
+          <div className="w-full lg:max-w-6xl lg:mx-auto">
             <Outlet />
           </div>
         </motion.div>

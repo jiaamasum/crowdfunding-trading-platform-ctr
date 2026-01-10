@@ -159,59 +159,64 @@ export default function AdminInvestmentRequests() {
         />
       ) : (
         <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Investor</TableHead>
-                <TableHead>Shares</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Requested</TableHead>
-                <TableHead>Note</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRequests.map((inv, index) => (
-                <motion.tr
-                  key={inv.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className="border-b"
-                >
-                  <TableCell className="font-medium">{inv.projectTitle}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{inv.investorName}</p>
-                      <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                  <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(inv.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs max-w-[220px] break-words line-clamp-2">
-                    {inv.requestNote || '—'}
-                  </TableCell>
-                  <TableCell className="space-x-2">
-                    <Button size="sm" onClick={() => handleApprove(inv)} disabled={isSubmitting}>
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleReject(inv)}
-                      disabled={isSubmitting}
-                    >
-                      Reject
-                    </Button>
-                  </TableCell>
-                </motion.tr>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Investor</TableHead>
+                  <TableHead>Shares</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Requested</TableHead>
+                  <TableHead>Note</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRequests.map((inv, index) => (
+                  <motion.tr
+                    key={inv.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="border-b"
+                  >
+                    <TableCell className="font-medium">{inv.projectTitle}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{inv.investorName}</p>
+                        <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                    <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(inv.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs max-w-[220px] break-words line-clamp-2">
+                      {inv.requestNote || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                        <Button size="sm" className="w-full sm:w-auto" onClick={() => handleApprove(inv)} disabled={isSubmitting}>
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                          onClick={() => handleReject(inv)}
+                          disabled={isSubmitting}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       )}
 

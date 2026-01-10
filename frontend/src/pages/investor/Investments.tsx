@@ -127,62 +127,71 @@ export default function InvestmentsPage() {
               icon={<Receipt className="h-12 w-12" />}
               title="No investments yet"
               description="Start investing in projects to build your portfolio"
-              action={{ label: 'Browse Projects', onClick: () => {} }}
+              action={{ label: 'Browse Projects', onClick: () => { } }}
             />
           ) : (
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Shares</TableHead>
-                    <TableHead>Price/Share</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Active</TableHead>
-                    <TableHead>Invested On</TableHead>
-                    <TableHead>Withdrawn On</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {investments.map((inv) => {
-                    const payment = getPaymentForInvestment(inv.id);
-                    return (
-                      <TableRow key={inv.id}>
-                        <TableCell>
-                          <Link to={`/projects/${inv.projectId}`} className="font-medium hover:text-accent transition-colors">
-                            {inv.projectTitle}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                        <TableCell><Money amount={inv.pricePerShare} /></TableCell>
-                        <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
-                        <TableCell><StatusBadge status={inv.status} /></TableCell>
-                        <TableCell><StatusBadge status={inv.isActive ? 'ACTIVE' : 'INACTIVE'} /></TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {inv.completedAt ? new Date(inv.completedAt).toLocaleDateString() : '—'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {inv.withdrawnAt ? new Date(inv.withdrawnAt).toLocaleDateString() : '—'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Link to={`/projects/${inv.projectId}`}>
-                              <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4" /></Button>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Shares</TableHead>
+                      <TableHead>Price/Share</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Active</TableHead>
+                      <TableHead>Invested On</TableHead>
+                      <TableHead>Withdrawn On</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investments.map((inv) => {
+                      const payment = getPaymentForInvestment(inv.id);
+                      return (
+                        <TableRow key={inv.id}>
+                          <TableCell>
+                            <Link to={`/projects/${inv.projectId}`} className="font-medium hover:text-accent transition-colors">
+                              {inv.projectTitle}
                             </Link>
-                            {payment && (
-                              <Button variant="ghost" size="sm" onClick={() => setSelectedReceipt({ investment: inv, payment })}>
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          </TableCell>
+                          <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                          <TableCell><Money amount={inv.pricePerShare} /></TableCell>
+                          <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
+                          <TableCell><StatusBadge status={inv.status} /></TableCell>
+                          <TableCell><StatusBadge status={inv.isActive ? 'ACTIVE' : 'INACTIVE'} /></TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {inv.completedAt ? new Date(inv.completedAt).toLocaleDateString() : '—'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {inv.withdrawnAt ? new Date(inv.withdrawnAt).toLocaleDateString() : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                              <Link to={`/projects/${inv.projectId}`}>
+                                <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              {payment && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full sm:w-auto"
+                                  onClick={() => setSelectedReceipt({ investment: inv, payment })}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </Card>
           )}
         </TabsContent>
@@ -192,12 +201,12 @@ export default function InvestmentsPage() {
             {investments.map((inv) => {
               const payment = getPaymentForInvestment(inv.id);
               if (!payment) return null;
-              
+
               return (
                 <motion.div key={inv.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                   <Card className="hover:shadow-soft-lg transition-shadow cursor-pointer" onClick={() => setSelectedReceipt({ investment: inv, payment })}>
                     <CardContent className="pt-6">
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
                         <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
                           <CheckCircle className="h-5 w-5 text-success" />
                         </div>
@@ -231,9 +240,9 @@ export default function InvestmentsPage() {
                 <p className="text-lg font-semibold">Payment Successful</p>
                 <Money amount={selectedReceipt.investment.totalAmount} className="text-3xl font-bold" />
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Transaction ID</span>
@@ -260,9 +269,9 @@ export default function InvestmentsPage() {
                   <span className="font-medium">{new Date(selectedReceipt.payment.createdAt).toLocaleString()}</span>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <Button variant="outline" className="w-full" onClick={() => window.print()}>
                 <Download className="h-4 w-4 mr-2" /> Download Receipt
               </Button>

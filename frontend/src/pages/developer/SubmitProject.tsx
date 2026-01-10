@@ -127,7 +127,7 @@ export default function SubmitProjectPage() {
             <CardDescription>Review your project before submitting</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               {project.thumbnailUrl && (
                 <MediaImage 
                   src={project.thumbnailUrl} 
@@ -135,10 +135,10 @@ export default function SubmitProjectPage() {
                   className="w-24 h-24 rounded-lg object-cover"
                 />
               )}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{project.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{project.shortDescription}</p>
-                <div className="flex gap-2 mt-2">
+                <div className="flex flex-wrap gap-2 mt-2">
                   <Badge variant="outline">{project.category.replace('_', ' ')}</Badge>
                   <Badge variant="outline">${project.totalValue.toLocaleString()}</Badge>
                   <Badge variant="outline">{project.totalShares.toLocaleString()} shares</Badge>

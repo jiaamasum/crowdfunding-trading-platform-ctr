@@ -185,7 +185,7 @@ export default function ProjectLedgerDetail() {
         .filter(Boolean);
       if (images.length === 0) return 'No images';
       return (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {images.map((imageUrl, index) => (
             <button
               key={`${field}-${index}`}

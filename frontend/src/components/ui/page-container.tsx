@@ -22,7 +22,7 @@ export function PageContainer({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className={cn("flex-1 space-y-6 p-6 md:p-8", className)}
+      className={cn("flex-1 min-w-0 w-full space-y-6 p-4 sm:p-6 md:p-8", className)}
     >
       {(title || description || actions) && (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

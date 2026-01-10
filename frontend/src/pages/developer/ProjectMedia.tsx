@@ -363,7 +363,7 @@ export default function ProjectMediaPage() {
 
               {/* Image previews */}
               {images.length > 0 && (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {images.map((img, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
                       <img src={img.preview} alt="" className="w-full h-full object-cover" />

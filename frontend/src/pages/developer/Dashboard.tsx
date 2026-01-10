@@ -7,11 +7,11 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Money } from '@/components/ui/money';
 import { SharesProgress } from '@/components/ui/shares-progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  FolderKanban, 
-  DollarSign, 
-  Users, 
-  TrendingUp, 
+import {
+  FolderKanban,
+  DollarSign,
+  Users,
+  TrendingUp,
   Plus,
   ArrowRight,
   Clock,
@@ -65,7 +65,7 @@ export default function DeveloperDashboard() {
   const approvedProjects = myProjects.filter(p => p.status === 'APPROVED');
   const pendingProjects = myProjects.filter(p => p.status === 'PENDING_REVIEW');
   const draftProjects = myProjects.filter(p => p.status === 'DRAFT' || p.status === 'NEEDS_CHANGES');
-  
+
   // Calculate stats
   const totalFundsSecured = dashboardStats?.totalFundsSecured ?? approvedProjects.reduce((sum, p) => sum + (p.sharesSold * p.perSharePrice), 0);
   const totalInvestors = dashboardStats?.totalInvestors ?? 0;
@@ -124,7 +124,7 @@ export default function DeveloperDashboard() {
           >
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-muted-foreground">{stat.label}</p>
                     {stat.isMoney ? (
@@ -198,14 +198,14 @@ export default function DeveloperDashboard() {
                   <AreaChart data={fundingData}>
                     <defs>
                       <linearGradient id="colorFunds" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis dataKey="month" className="text-xs" />
                     <YAxis className="text-xs" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, 'Funds']}
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                     />
@@ -232,7 +232,7 @@ export default function DeveloperDashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis type="number" className="text-xs" />
                   <YAxis dataKey="name" type="category" className="text-xs" width={90} tick={{ fontSize: 11 }} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                     labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
                   />
@@ -247,7 +247,7 @@ export default function DeveloperDashboard() {
 
       {/* Projects Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-lg">My Projects</CardTitle>
           <Link to="/app/developer/projects">
             <Button variant="ghost" size="sm" className="gap-1">
@@ -256,40 +256,42 @@ export default function DeveloperDashboard() {
           </Link>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Shares Sold</TableHead>
-                <TableHead>Funds Secured</TableHead>
-                <TableHead>Progress</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {myProjects.slice(0, 5).map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>
-                    <Link to={`/app/developer/projects/${project.id}`} className="font-medium hover:text-primary transition-colors">
-                      {project.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={project.status} />
-                  </TableCell>
-                  <TableCell>
-                    {project.sharesSold.toLocaleString()} / {project.totalShares.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Money amount={project.sharesSold * project.perSharePrice} />
-                  </TableCell>
-                  <TableCell className="w-32">
-                    <SharesProgress sold={project.sharesSold} total={project.totalShares} showLabel={false} />
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Shares Sold</TableHead>
+                  <TableHead>Funds Secured</TableHead>
+                  <TableHead>Progress</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {myProjects.slice(0, 5).map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell>
+                      <Link to={`/app/developer/projects/${project.id}`} className="font-medium hover:text-primary transition-colors">
+                        {project.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={project.status} />
+                    </TableCell>
+                    <TableCell>
+                      {project.sharesSold.toLocaleString()} / {project.totalShares.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Money amount={project.sharesSold * project.perSharePrice} />
+                    </TableCell>
+                    <TableCell className="w-32">
+                      <SharesProgress sold={project.sharesSold} total={project.totalShares} showLabel={false} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

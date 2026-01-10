@@ -17,8 +17,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ImageCarousel } from '@/components/ui/image-carousel';
 import { Lightbox, useLightbox } from '@/components/ui/lightbox';
 import { MediaImage } from '@/components/common/MediaImage';
-import { 
-  Heart, GitCompare, ChevronLeft, Calendar, Clock, Users, 
+import {
+  Heart, GitCompare, ChevronLeft, Calendar, Clock, Users,
   DollarSign, PieChart, Lock, FileText, Shield, AlertTriangle, Play,
   RotateCcw, ZoomIn, ZoomOut, Maximize2, Image as ImageIcon
 } from 'lucide-react';
@@ -103,7 +103,7 @@ export default function ProjectDetailPage() {
       setLoading(true);
       const found = id ? await projectsApi.getById(id) : null;
       setProject(found || null);
-      
+
       setLoading(false);
     };
     loadProject();
@@ -231,7 +231,7 @@ export default function ProjectDetailPage() {
       toast({ title: 'Please confirm the checkbox', variant: 'destructive' });
       return;
     }
-    
+
     setSubmittingAccess(true);
     try {
       if (!project) return;
@@ -319,8 +319,8 @@ export default function ProjectDetailPage() {
   const activeInvestment = investments.find((inv) => activeInvestmentStatuses.has(inv.status)) || null;
   const isExpiredApproval = Boolean(
     activeInvestment?.status === 'APPROVED'
-      && activeInvestment?.approvalExpiresAt
-      && new Date(activeInvestment.approvalExpiresAt) < new Date()
+    && activeInvestment?.approvalExpiresAt
+    && new Date(activeInvestment.approvalExpiresAt) < new Date()
   );
   const hasActiveInvestment = Boolean(activeInvestment) && !isExpiredApproval;
   const investmentStatus = isExpiredApproval ? 'EXPIRED' : activeInvestment?.status ?? latestInvestment?.status;
@@ -349,17 +349,17 @@ export default function ProjectDetailPage() {
       <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 min-w-0">
             {/* Hero Image Carousel */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="relative">
                 {project.images.length > 0 ? (
-                  <ImageCarousel 
-                    images={project.images} 
+                  <ImageCarousel
+                    images={project.images}
                     onImageClick={(index) => lightbox.openLightbox(project.images, index)}
                   />
                 ) : project.thumbnailUrl ? (
-                  <div 
+                  <div
                     className="aspect-video rounded-xl overflow-hidden bg-muted cursor-pointer group"
                     onClick={() => lightbox.openLightbox([project.thumbnailUrl!], 0)}
                   >
@@ -386,20 +386,20 @@ export default function ProjectDetailPage() {
 
             {/* Title & Actions */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <h1 className="text-3xl font-display font-bold">{project.title}</h1>
+                    <h1 className="text-3xl font-display font-bold break-words">{project.title}</h1>
                     {isInvestor && hasInvested && (
                       <Badge variant="outline" className="bg-success text-success-foreground border-success/60 shadow-soft-sm">
                         Invested
                       </Badge>
                     )}
                   </div>
-                  <p className="text-muted-foreground">by {project.developerName}</p>
+                  <p className="text-muted-foreground break-words">by {project.developerName}</p>
                 </div>
                 {user?.role === 'INVESTOR' && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 sm:shrink-0">
                     <Button variant="outline" size="icon" onClick={handleFavoriteToggle}>
                       <Heart className={cn("h-5 w-5", isFavorite(project.id) && "fill-destructive text-destructive")} />
                     </Button>
@@ -414,7 +414,7 @@ export default function ProjectDetailPage() {
             {/* Tabs */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsList className="w-full justify-start overflow-x-auto flex flex-nowrap overflow-y-hidden [&::-webkit-scrollbar]:hidden">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="financials">Financials</TabsTrigger>
                   <TabsTrigger value="progress">Progress</TabsTrigger>
@@ -427,7 +427,7 @@ export default function ProjectDetailPage() {
                   <Card>
                     <CardHeader><CardTitle>About This Project</CardTitle></CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground leading-relaxed">{project.description}</p>
+                      <p className="text-muted-foreground leading-relaxed break-words">{project.description}</p>
                     </CardContent>
                   </Card>
                   <Card>
@@ -488,15 +488,15 @@ export default function ProjectDetailPage() {
                     <Card>
                       <CardHeader><CardTitle>Timeline</CardTitle></CardHeader>
                       <CardContent>
-                        <div className="flex items-center justify-between text-sm">
-                          <div>
+                        <div className="flex flex-col sm:flex-row items-center justify-between text-sm gap-4 sm:gap-0">
+                          <div className="w-full sm:w-auto text-left">
                             <p className="text-muted-foreground">Start Date</p>
                             <p className="font-medium">{new Date(project.startDate).toLocaleDateString()}</p>
                           </div>
-                          <div className="flex-1 mx-8 h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="flex-1 w-full sm:w-auto h-2 rounded-full bg-muted overflow-hidden my-2 sm:my-0 sm:mx-8">
                             <div className="h-full bg-accent" style={{ width: `${100 - ((project.daysRemaining || 0) / project.durationDays * 100)}%` }} />
                           </div>
-                          <div className="text-right">
+                          <div className="w-full sm:w-auto text-right">
                             <p className="text-muted-foreground">End Date</p>
                             <p className="font-medium">{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'TBD'}</p>
                           </div>
@@ -511,11 +511,11 @@ export default function ProjectDetailPage() {
                     <CardHeader><CardTitle>Project Gallery</CardTitle></CardHeader>
                     <CardContent>
                       {project.images.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                           {project.images.map((img, i) => (
-                            <button 
-                              key={i} 
-                              onClick={() => lightbox.openLightbox(project.images, i)} 
+                            <button
+                              key={i}
+                              onClick={() => lightbox.openLightbox(project.images, i)}
                               className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity group relative"
                             >
                               <MediaImage src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
@@ -548,7 +548,7 @@ export default function ProjectDetailPage() {
                               <p className="text-lg font-medium mb-2">3D Model Viewer</p>
                               <p className="text-sm text-muted-foreground">Interactive 3D model coming soon</p>
                             </div>
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 w-[90%]">
                               <Button variant="outline" size="sm"><RotateCcw className="h-4 w-4 mr-1" /> Reset</Button>
                               <Button variant="outline" size="sm"><ZoomIn className="h-4 w-4 mr-1" /> Zoom In</Button>
                               <Button variant="outline" size="sm"><ZoomOut className="h-4 w-4 mr-1" /> Zoom Out</Button>
@@ -577,19 +577,19 @@ export default function ProjectDetailPage() {
                             {project.restrictedFields?.financialProjections && (
                               <div className="p-4 rounded-lg bg-muted/50">
                                 <h4 className="font-semibold mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Financial Projections</h4>
-                                <p className="text-sm text-muted-foreground">{project.restrictedFields.financialProjections}</p>
+                                <p className="text-sm text-muted-foreground break-words">{project.restrictedFields.financialProjections}</p>
                               </div>
                             )}
                             {project.restrictedFields?.businessPlan && (
                               <div className="p-4 rounded-lg bg-muted/50">
                                 <h4 className="font-semibold mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Business Plan</h4>
-                                <p className="text-sm text-muted-foreground">{project.restrictedFields.businessPlan}</p>
+                                <p className="text-sm text-muted-foreground break-words">{project.restrictedFields.businessPlan}</p>
                               </div>
                             )}
                             {project.restrictedFields?.riskAssessment && (
                               <div className="p-4 rounded-lg bg-muted/50">
                                 <h4 className="font-semibold mb-2 flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Risk Assessment</h4>
-                                <p className="text-sm text-muted-foreground">{project.restrictedFields.riskAssessment}</p>
+                                <p className="text-sm text-muted-foreground break-words">{project.restrictedFields.riskAssessment}</p>
                               </div>
                             )}
                           </>
@@ -609,8 +609,8 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Right Column - Investment Card */}
-          <div className="lg:col-span-1">
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="sticky top-24">
+          <div className="lg:col-span-1 min-w-0">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="lg:sticky lg:top-24">
               <Card className="shadow-soft-lg">
                 <CardHeader>
                   <CardTitle>Investment Summary</CardTitle>

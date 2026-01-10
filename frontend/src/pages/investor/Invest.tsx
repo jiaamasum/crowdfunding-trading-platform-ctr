@@ -275,7 +275,7 @@ export default function InvestPage() {
                       <Label>Card Number</Label>
                       <Input placeholder="4242 4242 4242 4242" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Expiry</Label>
                         <Input placeholder="MM/YY" />
@@ -305,7 +305,7 @@ export default function InvestPage() {
                   <span>Your payment is secure and encrypted</span>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Button variant="outline" className="flex-1" onClick={() => setStep('shares')}>Back</Button>
                   <Button variant="highlight" className="flex-1" onClick={handlePayment}>
                     <Shield className="h-4 w-4 mr-2" /> Pay <Money amount={totalAmount} />
@@ -357,7 +357,7 @@ export default function InvestPage() {
               </CardContent>
             </Card>
 
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/app/investor/investments">
                 <Button variant="outline">View Investments</Button>
               </Link>
@@ -377,7 +377,7 @@ export default function InvestPage() {
             <h2 className="text-2xl font-display font-bold mb-2">Payment Failed</h2>
             <p className="text-muted-foreground mb-6">There was an issue processing your payment. Please try again.</p>
             
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="outline" onClick={() => setStep('payment')}>Try Again</Button>
               <Link to="/app/investor/projects">
                 <Button variant="ghost">Cancel</Button>

@@ -86,34 +86,36 @@ export default function AdminProjectLedger() {
       </Card>
 
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project</TableHead>
-              <TableHead>Developer</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Updated</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProjects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.title}</TableCell>
-                <TableCell>{project.developerName}</TableCell>
-                <TableCell><StatusBadge status={project.status} /></TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(project.updatedAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Link to={`/app/admin/projects/ledger/${project.id}`}>
-                    <Button variant="outline" size="sm">View Timeline</Button>
-                  </Link>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project</TableHead>
+                <TableHead>Developer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredProjects.map((project) => (
+                <TableRow key={project.id}>
+                  <TableCell className="font-medium">{project.title}</TableCell>
+                  <TableCell>{project.developerName}</TableCell>
+                  <TableCell><StatusBadge status={project.status} /></TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(project.updatedAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Link to={`/app/admin/projects/ledger/${project.id}`}>
+                      <Button variant="outline" size="sm">View Timeline</Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

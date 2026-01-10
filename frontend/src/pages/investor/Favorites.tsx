@@ -89,9 +89,9 @@ export default function FavoritesPage() {
                 </div>
               </Link>
               <CardContent className="pt-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <Link to={`/projects/${project.id}`}>
-                    <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-2">
+                  <Link to={`/projects/${project.id}`} className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 min-w-0">
                       <h3 className="font-display font-semibold line-clamp-1 hover:text-accent transition-colors">
                         {project.title}
                       </h3>
@@ -105,7 +105,7 @@ export default function FavoritesPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive"
+                    className="h-8 w-8 text-destructive sm:shrink-0"
                     onClick={() => removeFavoriteRemote(project.id)}
                   >
                     <Heart className="h-4 w-4 fill-destructive" />
@@ -117,7 +117,7 @@ export default function FavoritesPage() {
                   <Money amount={project.perSharePrice} className="font-semibold" />
                 </div>
                 <SharesProgress sold={project.sharesSold} total={project.totalShares} size="sm" showLabels={false} />
-                <div className="flex justify-between items-center mt-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-3">
                   <span className="text-xs text-muted-foreground">{project.fundingProgress.toFixed(0)}% funded</span>
                   <Link to={`/projects/${project.id}`}>
                     <Button variant="ghost" size="sm" className="gap-1">

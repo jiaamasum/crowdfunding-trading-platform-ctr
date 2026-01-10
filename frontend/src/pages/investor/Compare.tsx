@@ -74,8 +74,8 @@ export default function ComparePage() {
   };
 
   return (
-    <PageContainer 
-      title="Compare Projects" 
+    <PageContainer
+      title="Compare Projects"
       description={`Comparing ${compareProjects.length} project${compareProjects.length !== 1 ? 's' : ''} side by side`}
       actions={
         <div className="flex gap-2">
@@ -102,7 +102,7 @@ export default function ComparePage() {
       }
     >
       {compareProjects.length < 2 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-xl bg-gradient-to-r from-warning/10 to-warning/5 border border-warning/20 text-warning text-sm mb-6 flex items-center gap-3"
@@ -142,9 +142,9 @@ export default function ComparePage() {
               {/* Thumbnail */}
               <div className="aspect-video bg-muted relative overflow-hidden">
                 {project.thumbnailUrl && (
-                  <MediaImage 
-                    src={project.thumbnailUrl} 
-                    alt={project.title} 
+                  <MediaImage
+                    src={project.thumbnailUrl}
+                    alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 )}
@@ -175,8 +175,8 @@ export default function ComparePage() {
                       <DollarSign className="h-4 w-4" /> Per Share
                     </span>
                     <div className="flex items-center gap-2">
-                      <Money 
-                        amount={project.perSharePrice} 
+                      <Money
+                        amount={project.perSharePrice}
                         className={cn(
                           "font-semibold",
                           project.perSharePrice === bestPerShare && "text-accent"
@@ -250,7 +250,7 @@ export default function ComparePage() {
           <CardContent>
             <div className="space-y-4">
               {/* Financial Details */}
-              <div className="rounded-xl bg-muted/50 p-4">
+              <div className="rounded-xl bg-muted/50 p-4 overflow-x-auto">
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">Financial Details</h3>
                 <div className="grid gap-4">
                   <ComparisonRow
@@ -297,7 +297,7 @@ export default function ComparePage() {
               </div>
 
               {/* Project Features */}
-              <div className="rounded-xl bg-muted/50 p-4">
+              <div className="rounded-xl bg-muted/50 p-4 overflow-x-auto">
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">Features</h3>
                 <div className="grid gap-4">
                   <ComparisonRow
@@ -331,7 +331,7 @@ export default function ComparePage() {
               </div>
 
               {/* Restricted Information */}
-              <div className="rounded-xl bg-warning/5 border border-warning/20 p-4">
+              <div className="rounded-xl bg-warning/5 border border-warning/20 p-4 overflow-x-auto">
                 <h3 className="font-semibold text-sm text-warning uppercase tracking-wide mb-4 flex items-center gap-2">
                   <Lock className="h-4 w-4" /> Restricted Information
                 </h3>
@@ -379,17 +379,17 @@ export default function ComparePage() {
 }
 
 // Helper component for comparison rows
-function ComparisonRow({ 
-  label, 
-  values, 
-  projectNames 
-}: { 
-  label: string; 
-  values: React.ReactNode[]; 
+function ComparisonRow({
+  label,
+  values,
+  projectNames
+}: {
+  label: string;
+  values: React.ReactNode[];
   projectNames: string[];
 }) {
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: `140px repeat(${values.length}, 1fr)` }}>
+    <div className="grid gap-3 min-w-[600px]" style={{ gridTemplateColumns: `140px repeat(${values.length}, 1fr)` }}>
       <div className="text-sm text-muted-foreground font-medium">{label}</div>
       {values.map((value, i) => (
         <div key={i} className="text-sm">

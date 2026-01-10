@@ -266,58 +266,62 @@ export default function InvestmentProjectDetail() {
       </Card>
 
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Investor</TableHead>
-              <TableHead>Shares</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredInvestments.map((inv) => (
-              <TableRow key={inv.id}>
-                <TableCell>
-                  <div>
-                    <p className="font-medium">{inv.investorName}</p>
-                    <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
-                  </div>
-                </TableCell>
-                <TableCell>{inv.shares.toLocaleString()}</TableCell>
-                <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
-                <TableCell><StatusBadge status={inv.status} /></TableCell>
-                <TableCell><StatusBadge status={inv.activityStatus || ((inv.isActive ?? inv.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(inv.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="space-x-2">
-                  {inv.status === 'REQUESTED' && (
-                    <>
-                      <Button size="sm" onClick={() => handleApprove(inv)}>Approve</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleReject(inv)}>Reject</Button>
-                    </>
-                  )}
-                  {inv.status === 'PROCESSING' && (
-                    <>
-                      <Button size="sm" onClick={() => handleProcessingOpen(inv, 'complete')}>Complete</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleProcessingOpen(inv, 'refund')}>Refund</Button>
-                    </>
-                  )}
-                  {inv.status === 'COMPLETED' && (
-                    <Button size="sm" variant="outline" onClick={() => openActionDialog(inv, 'withdraw')}>Withdraw</Button>
-                  )}
-                  {inv.status === 'APPROVED' && (
-                    <Button size="sm" variant="outline" onClick={() => openActionDialog(inv, 'refund')}>Refund</Button>
-                  )}
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Investor</TableHead>
+                <TableHead>Shares</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Active</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredInvestments.map((inv) => (
+                <TableRow key={inv.id}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{inv.investorName}</p>
+                      <p className="text-xs text-muted-foreground">{inv.investorEmail}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>{inv.shares.toLocaleString()}</TableCell>
+                  <TableCell><Money amount={inv.totalAmount} className="font-semibold" /></TableCell>
+                  <TableCell><StatusBadge status={inv.status} /></TableCell>
+                  <TableCell><StatusBadge status={inv.activityStatus || ((inv.isActive ?? inv.status === 'COMPLETED') ? 'ACTIVE' : 'INACTIVE')} /></TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(inv.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                      {inv.status === 'REQUESTED' && (
+                        <>
+                          <Button size="sm" className="w-full sm:w-auto" onClick={() => handleApprove(inv)}>Approve</Button>
+                          <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => handleReject(inv)}>Reject</Button>
+                        </>
+                      )}
+                      {inv.status === 'PROCESSING' && (
+                        <>
+                          <Button size="sm" className="w-full sm:w-auto" onClick={() => handleProcessingOpen(inv, 'complete')}>Complete</Button>
+                          <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => handleProcessingOpen(inv, 'refund')}>Refund</Button>
+                        </>
+                      )}
+                      {inv.status === 'COMPLETED' && (
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => openActionDialog(inv, 'withdraw')}>Withdraw</Button>
+                      )}
+                      {inv.status === 'APPROVED' && (
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => openActionDialog(inv, 'refund')}>Refund</Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       <Dialog open={approvalOpen} onOpenChange={setApprovalOpen}>

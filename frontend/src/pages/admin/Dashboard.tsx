@@ -169,7 +169,7 @@ export default function AdminDashboard() {
             <Link to={stat.link}>
               <Card className="hover:shadow-soft-lg transition-shadow cursor-pointer">
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">{stat.label}</p>
                       {stat.isMoney ? (
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Projects */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-lg">Recent Project Submissions</CardTitle>
             <Link to="/app/admin/projects/review-queue">
               <Button variant="ghost" size="sm" className="gap-1">
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {projects.slice(0, 4).map((project) => (
-                <div key={project.id} className="flex items-center justify-between">
+                <div key={project.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <MediaImage 
                       src={project.thumbnailUrl} 
@@ -334,7 +334,7 @@ export default function AdminDashboard() {
 
         {/* Recent Access Requests */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-lg">Recent Access Requests</CardTitle>
             <Link to="/app/admin/access-requests">
               <Button variant="ghost" size="sm" className="gap-1">
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {recentAccessRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-between">
+                <div key={request.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium text-sm">{request.investor_name || '-'}</p>
                     <p className="text-xs text-muted-foreground line-clamp-1">{request.project_title || '-'}</p>
@@ -359,7 +359,7 @@ export default function AdminDashboard() {
 
         {/* Recent Investment Requests */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-lg">Recent Investment Requests</CardTitle>
             <Link to="/app/admin/investments/requests">
               <Button variant="ghost" size="sm" className="gap-1">
@@ -373,7 +373,7 @@ export default function AdminDashboard() {
                 <div className="text-sm text-muted-foreground">No pending investment requests.</div>
               ) : (
                 recentInvestmentRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between">
+                  <div key={request.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-medium text-sm">{request.investorName || '-'}</p>
                       <p className="text-xs text-muted-foreground line-clamp-1">{request.projectTitle || '-'}</p>
